@@ -21,13 +21,6 @@ git clone https://github.com/kxddah/theoneliner.git
 cd theoneliner
 ```
 
-Note: Make the bash scripts executable, apparently idk how to upload the script with exec permissions
-```bash
-chmod 777 basicDependency.sh
-chmod 777 dependency.sh
-chmod 777 recon.sh
-```
-
 The `basicDependency.sh` contains the basic dependency
 ```bash
 ./basicDependency.sh
