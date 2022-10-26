@@ -2,6 +2,8 @@
 
 
 #reading the value of ASN and IP file
+lolcat=/usr/games/lolcat
+fortune=/usr/games/fortune
 value=$(<bgp.txt)
 
 #saving asns and ipranges in vars
