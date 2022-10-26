@@ -16,6 +16,9 @@ I usually run this on my VPS, didn't make it with convenience in mind, it just g
 
 
 # Installation
+
+https://user-images.githubusercontent.com/94586114/198102425-d1fbccff-c791-4724-81d2-57414183074a.mp4
+
 ```bash
 git clone https://github.com/kxddah/theoneliner.git
 cd theoneliner
