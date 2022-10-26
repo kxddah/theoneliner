@@ -27,9 +27,9 @@ printf '\n'
 mkdir $domain
 cd $domain
 
-cat ascii.txt | lolcat
+cat ascii.txt | $lolcat
 printf '\n\n'
-fortune | lolcat
+$fortune | $lolcat
 printf '\n\n'
 
 #dnsvalidator
