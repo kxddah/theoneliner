@@ -2,7 +2,7 @@
 
 
 #reading the value of ASN and IP file
-lolcat=/usr/games/lolcat
+$lolcat=/usr/games/$lolcat
 fortune=/usr/games/fortune
 value=$(<bgp.txt)
 
@@ -34,7 +34,7 @@ printf '\n\n'
 
 #dnsvalidator
 sleep 2
-printf '\nCollecting DNS resolvers using DNSValidator\n' | pv -qL 50 | lolcat
+printf '\nCollecting DNS resolvers using DNSValidator\n' | pv -qL 50 | $lolcat
 sleep 5
 
 dnsvalidator -tL https://public-dns.info/nameservers.txt -threads 150 -o resolvers.txt
@@ -43,7 +43,7 @@ rm resolvers.txt
 
 #amass
 sleep 2
-printf '\nRunning Amass Intel\n' | pv -qL 50 | lolcat
+printf '\nRunning Amass Intel\n' | pv -qL 50 | $lolcat
 sleep 5
 
 if [[ ! -z $asn && ! -z $ipranges ]]
@@ -66,7 +66,7 @@ rm amassintel.txt
 
 #amass enum
 sleep 2
-printf '\nRunning Amass Enum\n' | pv -qL 50 | lolcat
+printf '\nRunning Amass Enum\n' | pv -qL 50 | $lolcat
 sleep 5
 
 #don't use subdomains.txt if 0 results from intel
@@ -83,7 +83,7 @@ rm amassenum.txt
 
 #Running subfinder
 sleep 2
-printf '\nRunning Subfinder\n' | pv -qL 50 | lolcat
+printf '\nRunning Subfinder\n' | pv -qL 50 | $lolcat
 sleep 5
 
 subfinder -dL subdomains.txt -all -o subfinder.txt -pc ~/.config/subfinder/provider-config.yaml -rL 50resolvers.txt -nc
@@ -94,7 +94,7 @@ rm subfinder.txt
 
 #Running assetfinder
 sleep 2
-printf '\nRunning Assetfinder\n' | pv -qL 50 | lolcat
+printf '\nRunning Assetfinder\n' | pv -qL 50 | $lolcat
 sleep 5
 
 touch assetfinder.txt
@@ -106,7 +106,7 @@ rm assetfinder.txt
 
 #Running httpx
 sleep 2
-printf '\nFiltering valid domains using HTTPX\n' | pv -qL 50 | lolcat
+printf '\nFiltering valid domains using HTTPX\n' | pv -qL 50 | $lolcat
 sleep 5
 
 touch resolved.txt
