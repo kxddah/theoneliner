@@ -1,5 +1,6 @@
 #!/bin/bash
 
+#need to add flags to skip tools, stdin files
 
 #reading the value of ASN and IP file
 lolcat=/usr/games/lolcat
