@@ -131,6 +131,10 @@ printf '\nInstalling Anew\n' | pv -qL 50 | $lolcat
 sleep 5
 go install -v github.com/tomnomnom/anew@latest
 
+sleep 2
+printf '\nInstalling nuclei\n' | pv -qL 50 | $lolcat
+sleep 5
+go install -v github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest
 
 
 #add option for yes or no, for both wordlist
