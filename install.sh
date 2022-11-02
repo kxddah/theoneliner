@@ -25,9 +25,9 @@ unzip amass_linux_amd64.zip
 rm amass_linux_amd64.zip
 cp amass_linux_amd64/amass /usr/local/bin/
 cd ..
-mkdir /root/.config
-mkdir /root/.config/amass
-touch /root/.config/amass/config.ini
+mkdir ~/.config
+mkdir ~/.config/amass
+touch ~/.config/amass/config.ini
 
 #installing go
 sleep 2
@@ -36,7 +36,7 @@ sleep 5
 wget https://go.dev/dl/go1.19.1.linux-amd64.tar.gz
 tar -C /usr/local -xzf go1.19.1.linux-amd64.tar.gz
 echo 'export PATH=$PATH:/usr/local/go/bin' >> /root/.bashrc
-source /root/.profile
+source ~/.profile
 go version
 
 sleep 2
@@ -49,7 +49,7 @@ printf '\nSetting up GOPATH\n' | pv -qL 50 | $lolcat
 sleep 5
 echo 'export PATH=$PATH:/root/go/bin' >> /root/.bashrc
 echo 'export GOPATH=/root/go' >> /root/.bashrc
-source /root/.profile
+source ~/.profile
 
 sleep 2
 printf '\nInstalling DNSValidator\n' | pv -qL 50 | $lolcat
@@ -58,7 +58,7 @@ cd /opt/
 git clone https://github.com/vortexau/dnsvalidator.git
 cd dnsvalidator
 python3 setup.py install
-cd ../..
+cd /
 
 sleep 2
 printf '\nInstalling httpx\n' | pv -qL 50 | $lolcat
@@ -109,7 +109,7 @@ wget https://github.com/michenriksen/aquatone/releases/download/v1.7.0/aquatone_
 unzip aquatone_linux_amd64_1.7.0.zip
 rm LICENSE.txt README.md aquatone_linux_amd64_1.7.0.zip
 cp aquatone /usr/local/bin/
-cd /
+cd /opt
 
 sleep 2
 printf '\nInstalling ReconFTW\n' | pv -qL 50 | $lolcat
@@ -120,7 +120,8 @@ cd reconftw/
 
 sleep 2
 printf '\nInstalling Waymore\n' | pv -qL 50 | $lolcat
-sleep 5cd /opt/
+sleep 5
+cd /opt/
 git clone https://github.com/xnl-h4ck3r/waymore.git
 cd waymore
 sudo pip3 install -r requirements.txt
