@@ -140,7 +140,8 @@ go install -v github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest
 #add option for yes or no, for both wordlist
 sleep 2
 printf '\nDownloading Seclist and Assetnote wordlists\n' | pv -qL 50 | $lolcat
-sleep 5cd /
+sleep 5
+cd /
 mkdir bounty
 cd bounty/
 mkdir wordlists
