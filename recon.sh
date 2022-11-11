@@ -116,7 +116,7 @@ printf '\nFiltering valid domains using HTTPX\n' | pv -qL 50 | $lolcat
 sleep 5
 
 touch resolvedsubs.txt
-httpx -l subdomains.txt -fc 404 -silent -rl 10 -o resolvedsubs.txt
+httpx -l subdomains.txt -fc 404 -silent -rl 10 -timeout 15 -o resolvedsubs.txt
 
 #filtering httpx output to remove http(s)://, requires moreutils, apt-get install moreutils
 cat resolvedsubs.txt | cut -d "/" -f 3 | sponge resolvedsubs.txt
