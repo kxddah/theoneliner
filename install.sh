@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 #Need not run this one, I usually use this on a fresh VPS instance, included in this repo for my convenience 
 sudo apt-get -y update
 sudo apt-get -y upgrade
