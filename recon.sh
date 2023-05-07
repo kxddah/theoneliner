@@ -1,15 +1,9 @@
 #!/bin/bash
 
-#need to add flags to skip tools, stdin files
+#Improvement: need to add flags to skip tools, stdin files
 
-#reading the value of ASN and IP file
 lolcat=/usr/games/lolcat
 fortune=/usr/games/fortune
-value=$(<bgp.txt)
-
-#saving asns and ipranges in vars
-asn=$(echo "$value" | awk '{print $1}' | awk '/A/ {print}' | paste -sd,)
-ipranges=$(echo "$value" | awk '{print $1}' | awk '!/A/ {print}' | paste -sd,)
 
 #gathering input on scope
 validate="^([a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]\.)+[a-zA-Z]{2,}$"
@@ -23,10 +17,15 @@ then
 	echo "Invalid domain name! Exiting..." && exit 1
 fi
 printf '\n'
+printf '\n'
+echo "Enter organisation name: "
+read org
+printf '\n'
 
 #making directory for target
 mkdir $domain
 cd $domain
+
 
 echo '████████╗██╗░░██╗███████╗░█████╗░███╗░░██╗███████╗██╗░░░░░██╗███╗░░██╗███████╗██████╗░'| $lolcat
 echo '╚══██╔══╝██║░░██║██╔════╝██╔══██╗████╗░██║██╔════╝██║░░░░░██║████╗░██║██╔════╝██╔══██╗'| $lolcat
@@ -38,14 +37,33 @@ printf '\n\n'
 $fortune | $lolcat
 printf '\n\n'
 
+#fetching all asns, not sure if the list is updated, let me know if any better solutions present
+value=$(curl https://ftp.ripe.net/ripe/asnames/asn.txt)
+
+#saving asns and ipranges in vars
+asn=$(echo "$value" | grep -i "$org" | awk '{print "AS"$1}' | paste -sd,)
+
+if [[ ! -z $asn ]]
+then
+        ipranges=$(asnmap -asn $(echo $asn))
+else
+        ipranges=$(asnmap -org $(echo $org))
+fi
+
+ipranges=$(echo "$ipranges" | awk '{print $1}' | paste -sd,)
+
+echo -e "ASNs: "$asn"\n"
+echo -e "IP/ranges: "$ipranges"\n"
+
 #dnsvalidator
 sleep 2
 printf '\nCollecting DNS resolvers using DNSValidator\n' | pv -qL 50 | $lolcat
 sleep 5
 
-dnsvalidator -tL https://public-dns.info/nameservers.txt -threads 150 -o resolvers.txt
-sort -R resolvers.txt | tail -n 50 > 50resolvers.txt
+dnsvalidator -tL https://public-dns.info/nameservers.txt -threads 200 --silent -o resolvers.txt
+sort -R resolvers.txt | tail -n 100 > 100resolvers.txt
 rm resolvers.txt
+echo -e "DNS Resolvers collected, initating enumeration and scanning" | notify -silent
 
 #amass
 sleep 2
@@ -54,15 +72,15 @@ sleep 5
 
 if [[ ! -z $asn && ! -z $ipranges ]]
 then
-	amass intel -active -whois -d $domain -asn $asn -cidr $ipranges -rf 50resolvers.txt -config /root/.config/amass/config.ini -o amassintel.txt
+	amass intel -active -whois -d $domain -asn $asn -cidr $ipranges -rf 100resolvers.txt -config /root/.config/amass/config.ini -o amassintel.txt
 elif [[ ! -z $asn && -z $ipranges ]]
 then
-	amass intel -active -whois -d $domain -asn $asn -rf 50resolvers.txt -config /root/.config/amass/config.ini -o amassintel.txt
+	amass intel -active -whois -d $domain -asn $asn -rf 100resolvers.txt -config /root/.config/amass/config.ini -o amassintel.txt
 elif [[ -z $asn && ! -z $ipranges ]]
 then
-	amass intel -active -whois -d $domain -cidr $ipranges -rf 50resolvers.txt -config /root/.config/amass/config.ini -o amassintel.txt
+	amass intel -active -whois -d $domain -cidr $ipranges -rf 100resolvers.txt -config /root/.config/amass/config.ini -o amassintel.txt
 else
-	amass intel -active -whois -d $domain -rf 50resolvers.txt -config /root/.config/amass/config.ini -o amassintel.txt
+	amass intel -active -whois -d $domain -rf 100resolvers.txt -config /root/.config/amass/config.ini -o amassintel.txt
 fi
 
 #filter results from amass intel file
@@ -78,9 +96,9 @@ sleep 5
 #don't use subdomains.txt if 0 results from intel
 if [[ -s subdomains.txt ]]
 then
-	amass enum -active -d $domain -nf subdomains.txt -rf 50resolvers.txt -config /root/.config/amass/config.ini -nocolor -o amassenum.txt
+	amass enum -active -d $domain -nf subdomains.txt -rf 100resolvers.txt -config /root/.config/amass/config.ini -nocolor -o amassenum.txt
 else
-	amass enum -active -d $domain -rf 50resolvers.txt -config /root/.config/amass/config.ini -nocolor -o amassenum.txt
+	amass enum -active -d $domain -rf 100resolvers.txt -config /root/.config/amass/config.ini -nocolor -o amassenum.txt
 fi
 
 #filter results from amass enum file 
@@ -92,7 +110,7 @@ sleep 2
 printf '\nRunning Subfinder\n' | pv -qL 50 | $lolcat
 sleep 5
 
-subfinder -dL subdomains.txt -all -o subfinder.txt -pc ~/.config/subfinder/provider-config.yaml -rL 50resolvers.txt -nc
+subfinder -dL subdomains.txt -all -o subfinder.txt -pc ~/.config/subfinder/provider-config.yaml -rL 100resolvers.txt -nc
 
 #combining results from subfinder into final file
 cat subfinder.txt | grep $domain | anew subdomains.txt
@@ -120,3 +138,50 @@ httpx -l subdomains.txt -fc 404 -silent -rl 10 -timeout 15 -o resolvedsubs.txt
 
 #filtering httpx output to remove http(s)://, requires moreutils, apt-get install moreutils
 cat resolvedsubs.txt | cut -d "/" -f 3 | sponge resolvedsubs.txt
+echo -e "Subdomain enumeration for "$domain" has been completed\n" | notify -silent
+echo -e "Total subdomains:$(cat subdomains.txt | wc -l) & Resolved subdomains:$(cat resolvedsubs.txt | wc -l)\n" | notify -silent
+
+
+#integrating gau, waymore and katana
+touch spidering.txt
+touch tempfile.txt
+#Running gau
+sleep 2
+printf '\nSpidering using GAU\n' | pv -qL 50 | $lolcat
+sleep 5
+cat subomains.txt | gau --providers wayback,commoncrawl,otx,urlscan | tee spidering.txt
+
+#Running Katana
+sleep 2
+printf '\nSpidering using Katana\n' | pv -qL 50 | $lolcat
+sleep 5
+katana -list subdomains.txt -d 4 -jc -rl 50 | tee tempfile.txt
+cat spidering.txt | anew tempfile.txt
+
+#Running Waymore
+sleep 2
+printf '\nSpidering using Waymore\n' | pv -qL 50 | $lolcat
+sleep 5
+python3 /opt/waymore/waymore.py -i subdomains.txt -mode U | tee tempfile.txt
+cat spidering.txt | anew tempfile.txt
+rm tempfile.txt
+echo -e "Spidering for "$domain" has been completed, total links found: $(cat spidering.txt | wc -l)\n" | notify -silent
+
+
+#portscanning
+sleep 2
+printf '\nPortscanning using Naabu\n' | pv -qL 50 | $lolcat
+sleep 5
+naabu -l subdomains.txt -p 1-65535 -rate 2000 -timeout 5000 | tee portscan.txt
+echo -e "Portscanning for "$domain" has been completed\n" | notify -silent
+
+
+#Running nuclei on portscanned unresolved hosts
+sleep 2
+printf '\nVulnerability scanning using Nuclei\n' | pv -qL 50 | $lolcat
+sleep 5
+nuclei -l portscan.txt -rl 1000 -t ~/nuclei-templates/ | tee nuclei.txt
+nucleilow=$(cat nuclei.txt | grep '32mlow' | wc -l)
+nucleimedium=$(cat nuclei.txt | grep '33mmedium' | wc -l)
+nucleihigh=$(cat nuclei.txt | grep '208mhigh' | wc -l)
+echo "Nuclei scan results: High:"$nucleihigh"  Medium:"$nucleimedium"  Low:"$nucleilow"" | notify -silent

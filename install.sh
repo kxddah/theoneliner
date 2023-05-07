@@ -20,10 +20,7 @@ sleep 2
 printf '\nInstalling Amass\n' | pv -qL 50 | $lolcat
 sleep 5
 cd /opt/
-wget https://github.com/OWASP/Amass/releases/download/v3.20.0/amass_linux_amd64.zip
-unzip amass_linux_amd64.zip
-rm amass_linux_amd64.zip
-cp amass_linux_amd64/amass /usr/local/bin/
+go install -v github.com/owasp-amass/amass/v3/...@master
 cd ..
 mkdir ~/.config
 mkdir ~/.config/amass
@@ -33,9 +30,10 @@ touch ~/.config/amass/config.ini
 sleep 2
 printf '\nInstalling Golang\n' | pv -qL 50 | $lolcat
 sleep 5
-wget https://go.dev/dl/go1.19.1.linux-amd64.tar.gz
-tar -C /usr/local -xzf go1.19.1.linux-amd64.tar.gz
+wget https://go.dev/dl/go1.20.4.linux-amd64.tar.gz
+tar -C /usr/local -xzf go1.20.4.linux-amd64.tar.gz
 echo 'export PATH=$PATH:/usr/local/go/bin' >> /root/.bashrc
+echo 'export PATH=$PATH:~/go/bin/'
 source ~/.profile
 go version
 
@@ -43,13 +41,6 @@ sleep 2
 printf '\nInstalling ffuf\n' | pv -qL 50 | $lolcat
 sleep 5
 go install github.com/ffuf/ffuf@latest
-
-sleep 2
-printf '\nSetting up GOPATH\n' | pv -qL 50 | $lolcat
-sleep 5
-echo 'export PATH=$PATH:/root/go/bin' >> /root/.bashrc
-echo 'export GOPATH=/root/go' >> /root/.bashrc
-source ~/.profile
 
 sleep 2
 printf '\nInstalling DNSValidator\n' | pv -qL 50 | $lolcat
@@ -136,6 +127,11 @@ sleep 2
 printf '\nInstalling nuclei\n' | pv -qL 50 | $lolcat
 sleep 5
 go install -v github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest
+
+sleep 2
+printf '\nInstalling notify\n' | pv -qL 50 | $lolcat
+sleep 5
+go install -v github.com/projectdiscovery/notify/cmd/notify@latest
 
 
 #add option for yes or no, for both wordlist
