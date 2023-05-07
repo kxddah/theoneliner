@@ -41,7 +41,7 @@ printf '\n\n'
 value=$(curl https://ftp.ripe.net/ripe/asnames/asn.txt)
 
 #saving asns and ipranges in vars
-asn=$(echo "$value" | grep -i "$org" | awk '{print "AS"$1}' | paste -sd,)
+asn=$(echo "$value" | grep -i "\<"$org"\>" | awk '{print "AS"$1}' | paste -sd,)
 
 if [[ ! -z $asn ]]
 then
