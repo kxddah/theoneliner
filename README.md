@@ -53,4 +53,4 @@ New addition to the script is [Notify](https://github.com/projectdiscovery/notif
 
 
 # Future improvements:
-- Add support for multiple domains, currenlty the tool takes only one domains and runs the scanning.
+- Add support for multiple domains, currenlty the tool takes only one domain and runs the scanning.
