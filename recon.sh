@@ -60,7 +60,7 @@ sleep 2
 printf '\nCollecting DNS resolvers using DNSValidator\n' | pv -qL 50 | $lolcat
 sleep 5
 
-dnsvalidator -tL https://public-dns.info/nameservers.txt -threads 200 --silent -o resolvers.txt
+dnsvalidator -tL https://public-dns.info/nameservers.txt -threads 200 -o resolvers.txt --silent 
 sort -R resolvers.txt | tail -n 100 > 100resolvers.txt
 rm resolvers.txt
 echo -e "DNS Resolvers collected, initating enumeration and scanning" | notify -silent
@@ -149,7 +149,7 @@ touch tempfile.txt
 sleep 2
 printf '\nSpidering using GAU\n' | pv -qL 50 | $lolcat
 sleep 5
-cat subomains.txt | gau --providers wayback,commoncrawl,otx,urlscan | tee spidering.txt
+cat subdomains.txt | gau --providers wayback,commoncrawl,otx,urlscan | tee spidering.txt
 
 #Running Katana
 sleep 2
@@ -172,7 +172,7 @@ echo -e "Spidering for "$domain" has been completed, total links found: $(cat sp
 
 #portscanning
 sleep 2
-printf '\nPortscanning using Naabu\n' | pv -qL 50 | $lolcat
+printf '\nPort scanning using Naabu\n' | pv -qL 50 | $lolcat
 sleep 5
 naabu -l subdomains.txt -p 1-65535 -rate 2000 -timeout 5000 | tee portscan.txt
 echo -e "Portscanning for "$domain" has been completed\n" | notify -silent
