@@ -65,6 +65,8 @@ sleep 2
 printf '\nInstalling Subfinder\n' | pv -qL 50 | $lolcat
 sleep 5
 go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
+mkdir ~/.config/subfinder
+touch ~/.config/subfinder/provider-config.yaml
 
 sleep 2
 printf '\nInstalling Gospider\n' | pv -qL 50 | $lolcat
@@ -132,7 +134,8 @@ sleep 2
 printf '\nInstalling notify\n' | pv -qL 50 | $lolcat
 sleep 5
 go install -v github.com/projectdiscovery/notify/cmd/notify@latest
-
+mkdir ~/.config/notify
+touch  ~/.config/notify/provider-config.yaml
 
 #add option for yes or no, for both wordlist
 sleep 2

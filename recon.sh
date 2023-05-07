@@ -165,6 +165,8 @@ sleep 5
 python3 /opt/waymore/waymore.py -i subdomains.txt -mode U | tee tempfile.txt
 cat spidering.txt | anew tempfile.txt
 rm tempfile.txt
+#removing duplicate entries
+cat spidering.txt | sort -u | uniq | sponge spidering.txt
 echo -e "Spidering for "$domain" has been completed, total links found: $(cat spidering.txt | wc -l)\n" | notify -silent
 
 
