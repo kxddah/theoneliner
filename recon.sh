@@ -60,7 +60,7 @@ sleep 2
 printf '\nCollecting DNS resolvers using DNSValidator\n' | pv -qL 50 | $lolcat
 sleep 5
 
-dnsvalidator -tL https://public-dns.info/nameservers.txt -threads 200 -o resolvers.txt --silent 
+dnsvalidator --silent -tL https://public-dns.info/nameservers.txt -threads 200 -o resolvers.txt
 sort -R resolvers.txt | tail -n 100 > 100resolvers.txt
 rm resolvers.txt
 echo -e "DNS Resolvers collected, initating enumeration and scanning" | notify -silent
