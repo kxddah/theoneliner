@@ -60,7 +60,7 @@ sleep 2
 printf '\nCollecting DNS resolvers using DNSValidator\n' | pv -qL 50 | $lolcat
 sleep 5
 
-dnsvalidator --silent -tL https://public-dns.info/nameservers.txt -threads 200 -o resolvers.txt
+dnsvalidator --silent -tL https://public-dns.info/nameservers.txt -threads 200 | tee resolvers.txt
 sort -R resolvers.txt | tail -n 100 > 100resolvers.txt
 rm resolvers.txt
 echo -e "DNS Resolvers collected, initating enumeration and scanning" | notify -silent
@@ -139,7 +139,7 @@ httpx -l subdomains.txt -fc 404 -silent -rl 10 -timeout 15 -o resolvedsubs.txt
 #filtering httpx output to remove http(s)://, requires moreutils, apt-get install moreutils
 cat resolvedsubs.txt | cut -d "/" -f 3 | sponge resolvedsubs.txt
 echo -e "Subdomain enumeration for "$domain" has been completed\n" | notify -silent
-echo -e "Total subdomains:$(cat subdomains.txt | wc -l) & Resolved subdomains:$(cat resolvedsubs.txt | wc -l)\n" | notify -silent
+echo -e "Total subdomains: $(cat subdomains.txt | wc -l) & Resolved subdomains: $(cat resolvedsubs.txt | wc -l)\n" | notify -silent
 
 
 #integrating gau, waymore and katana
@@ -193,4 +193,4 @@ nuclei -l portscan.txt -rl 1000 -t ~/nuclei-templates/ | tee nuclei.txt
 nucleilow=$(cat nuclei.txt | grep '32mlow' | wc -l)
 nucleimedium=$(cat nuclei.txt | grep '33mmedium' | wc -l)
 nucleihigh=$(cat nuclei.txt | grep '208mhigh' | wc -l)
-echo "Nuclei scan results: High:"$nucleihigh"  Medium:"$nucleimedium"  Low:"$nucleilow"" | notify -silent
+echo "Nuclei scan results: High: "$nucleihigh"  Medium: "$nucleimedium"  Low: "$nucleilow"" | notify -silent

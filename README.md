@@ -13,6 +13,7 @@ Httpx
 Gau
 Waymore
 Katana
+Gospider
 Naabu
 Nuclei
 ```
