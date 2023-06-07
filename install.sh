@@ -122,6 +122,11 @@ sudo pip3 install -r requirements.txt
 sudo python setup.py install
 
 sleep 2
+printf '\nInstalling waybackurls\n' | pv -qL 50 | $lolcat
+sleep 5
+go install github.com/tomnomnom/waybackurls@latest
+
+sleep 2
 printf '\nInstalling Anew\n' | pv -qL 50 | $lolcat
 sleep 5
 go install -v github.com/tomnomnom/anew@latest

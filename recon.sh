@@ -142,12 +142,12 @@ echo -e "Subdomain enumeration for "$domain" has been completed\n" | notify -sil
 echo -e "Total subdomains: $(cat subdomains.txt | wc -l) & Resolved subdomains: $(cat resolvedsubs.txt | wc -l)\n" | notify -silent
 
 
-#integrating gau, waymore and katana
+#integrating gau, waymore, waybackurls and katana
 touch spidering.txt
 touch tempfile.txt
 #Running gau
 sleep 2
-printf '\nSpidering using GAU\n' | pv -qL 50 | $lolcat
+printf '\Collecting URLs using GAU\n' | pv -qL 50 | $lolcat
 sleep 5
 cat subdomains.txt | gau --providers wayback,commoncrawl,otx,urlscan | tee spidering.txt
 
@@ -159,11 +159,19 @@ katana -list subdomains.txt -d 4 -jc -rl 50 | tee tempfile.txt
 cat spidering.txt | anew tempfile.txt
 
 #Running Waymore
+#sleep 2
+#printf '\nSpidering using Waymore\n' | pv -qL 50 | $lolcat
+#sleep 5
+#python3 /opt/waymore/waymore.py -i subdomains.txt -mode U | tee tempfile.txt
+#cat spidering.txt | anew tempfile.txt
+
+Running waybackurls
 sleep 2
-printf '\nSpidering using Waymore\n' | pv -qL 50 | $lolcat
+printf '\Collecting URLs using waybackurls\n' | pv -qL 50 | $lolcat
 sleep 5
-python3 /opt/waymore/waymore.py -i subdomains.txt -mode U | tee tempfile.txt
+cat subdomains.txt | waybackurls > tempfile.txt
 cat spidering.txt | anew tempfile.txt
+
 
 sleep 2
 printf '\nSpidering using GoSpider\n' | pv -qL 50 | $lolcat
