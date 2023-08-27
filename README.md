@@ -36,7 +36,7 @@ Do note that this script downloads seclists and assetnote wordlists as well, the
 Note: I've noticed the golang config does not persist on reboot, but since I don't reboot my VPS I don't usually face any issues.
 
 # Configuration
-You would have to configure the config files for [Amass](https://github.com/OWASP/Amass/blob/master/examples/config.ini) and [Subfinder](https://github.com/projectdiscovery/subfinder/blob/master/README.md#post-installation-instructions) if you'd like to have api-keys, just follow the respective guides to setup those, add them in the root folder `~/.config/amass/config.ini` and `~/.config/subfinder/provider-config.yaml`
+You would have to configure the config files for [Amass](https://github.com/owasp-amass/amass/blob/master/doc/user_guide.md#the-configuration-file) and [Subfinder](https://github.com/projectdiscovery/subfinder/blob/master/README.md#post-installation-instructions) if you'd like to have api-keys, just follow the respective guides to setup those, add them in the root folder `~/.config/amass/datasources.yaml` and `~/.config/subfinder/provider-config.yaml`
 
 New addition to the script is [Notify](https://github.com/projectdiscovery/notify#provider-config), setup the config file at  `~/.config/notify/provider-config.yaml`
 
