@@ -43,6 +43,7 @@ value=$(curl https://ftp.ripe.net/ripe/asnames/asn.txt)
 #saving asns and ipranges in vars
 asn=$(echo "$value" | grep -i "\<"$org"\>" | awk '{print "AS"$1}' | paste -sd,)
 
+#asnmap will probably throw an error, probably cause their api is usually down - https://status.projectdiscovery.io/
 if [[ ! -z $asn ]]
 then
         ipranges=$(asnmap -asn $(echo $asn))
@@ -56,14 +57,15 @@ echo -e "ASNs: "$asn"\n"
 echo -e "IP/ranges: "$ipranges"\n"
 
 #dnsvalidator
-sleep 2
-printf '\nCollecting DNS resolvers using DNSValidator\n' | pv -qL 50 | $lolcat
-sleep 5
+#sleep 2
+#printf '\nCollecting DNS resolvers using DNSValidator\n' | pv -qL 50 | $lolcat
+#sleep 5
 
-dnsvalidator --silent -tL https://public-dns.info/nameservers.txt -threads 200 | tee resolvers.txt
-sort -R resolvers.txt | tail -n 100 > 100resolvers.txt
-rm resolvers.txt
-echo -e "DNS Resolvers collected, initating enumeration and scanning" | notify -silent
+#dnsvalidator --silent -tL https://public-dns.info/nameservers.txt -threads 200 | tee resolvers.txt
+#sort -R resolvers.txt | tail -n 100 > 100resolvers.txt
+#rm resolvers.txt
+#echo -e "DNS Resolvers collected, initating enumeration and scanning" | notify -silent
+
 
 #amass
 sleep 2
@@ -72,15 +74,15 @@ sleep 5
 
 if [[ ! -z $asn && ! -z $ipranges ]]
 then
-	amass intel -active -whois -d $domain -asn $asn -cidr $ipranges -rf 100resolvers.txt -o amassintel.txt
+	amass intel -active -whois -d $domain -asn $asn -cidr $ipranges -rf resolvers.txt -o amassintel.txt
 elif [[ ! -z $asn && -z $ipranges ]]
 then
-	amass intel -active -whois -d $domain -asn $asn -rf 100resolvers.txt -o amassintel.txt
+	amass intel -active -whois -d $domain -asn $asn -rf resolvers.txt -o amassintel.txt
 elif [[ -z $asn && ! -z $ipranges ]]
 then
-	amass intel -active -whois -d $domain -cidr $ipranges -rf 100resolvers.txt -o amassintel.txt
+	amass intel -active -whois -d $domain -cidr $ipranges -rf resolvers.txt -o amassintel.txt
 else
-	amass intel -active -whois -d $domain -rf 100resolvers.txt -o amassintel.txt
+	amass intel -active -whois -d $domain -rf resolvers.txt -o amassintel.txt
 fi
 
 #filter results from amass intel file
@@ -96,9 +98,9 @@ sleep 5
 #don't use subdomains.txt if 0 results from intel
 if [[ -s subdomains.txt ]]
 then
-	amass enum -active -d $domain -nf subdomains.txt -rf 100resolvers.txt -nocolor -o amassenum.txt
+	amass enum -active -d $domain -nf subdomains.txt -rf resolvers.txt -nocolor -o amassenum.txt
 else
-	amass enum -active -d $domain -rf 100resolvers.txt -nocolor -o amassenum.txt
+	amass enum -active -d $domain -rf resolvers.txt -nocolor -o amassenum.txt
 fi
 
 #filter results from amass enum file 
@@ -110,7 +112,7 @@ sleep 2
 printf '\nRunning Subfinder\n' | pv -qL 50 | $lolcat
 sleep 5
 
-subfinder -dL subdomains.txt -all -o subfinder.txt -pc ~/.config/subfinder/provider-config.yaml -rL 100resolvers.txt -nc
+subfinder -dL subdomains.txt -all -o subfinder.txt -pc ~/.config/subfinder/provider-config.yaml -rL resolvers.txt -nc
 
 #combining results from subfinder into final file
 cat subfinder.txt | grep $domain | anew subdomains.txt
