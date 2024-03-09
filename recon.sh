@@ -25,6 +25,7 @@ printf '\n'
 #making directory for target
 mkdir $domain
 cd $domain
+cp ../params.txt ./
 
 
 echo '████████╗██╗░░██╗███████╗░█████╗░███╗░░██╗███████╗██╗░░░░░██╗███╗░░██╗███████╗██████╗░'| $lolcat
@@ -205,3 +206,17 @@ nucleilow=$(cat nuclei.txt | grep '32mlow' | wc -l)
 nucleimedium=$(cat nuclei.txt | grep '33mmedium' | wc -l)
 nucleihigh=$(cat nuclei.txt | grep '208mhigh' | wc -l)
 echo "Nuclei scan results: High: "$nucleihigh"  Medium: "$nucleimedium"  Low: "$nucleilow"" | notify -silent
+
+
+#preparing params.txt from spidering.txt
+input_file="spidering.txt"
+output_file="params1.txt"
+awk -F'[=?]' '!seen[$2]++ && $2 { print $2 }' "$input_file" | sort > "$output_file"
+cat params1.txt | anew params.txt
+
+#not entirely sure how dalfox uses mining dict wordlist, will read-up more
+sleep 2
+printf '\nRunning Dalfox\n' | pv -qL 50 | $lolcat
+sleep 5
+dalfox file resolvedsubs.txt --mining-dict-word params.txt --waf-evasion -b [your-callback-url] --output dalfox.txt
+echo "Dalfox scan complete" | notify -silent
