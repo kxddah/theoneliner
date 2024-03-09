@@ -16,6 +16,7 @@ Katana
 Gospider
 Naabu
 Nuclei
+Dalfox
 ```
 
 It is recommended to run this on a VPS as I had designed this with ease of setup on new VPS instances in mind.
