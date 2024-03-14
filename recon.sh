@@ -76,15 +76,15 @@ sleep 5
 
 if [[ ! -z $asn && ! -z $ipranges ]]
 then
-	amass intel -active -whois -d $domain -asn $asn -cidr $ipranges -rf ../100resolvers.txt -o amassintel.txt
+	amass intel -active -whois -d $domain -asn $asn -cidr $ipranges -timeout 100 -rf ../100resolvers.txt -o amassintel.txt
 elif [[ ! -z $asn && -z $ipranges ]]
 then
-	amass intel -active -whois -d $domain -asn $asn -rf ../100resolvers.txt -o amassintel.txt
+	amass intel -active -whois -d $domain -asn $asn -timeout 100 -rf ../100resolvers.txt -o amassintel.txt
 elif [[ -z $asn && ! -z $ipranges ]]
 then
-	amass intel -active -whois -d $domain -cidr $ipranges -rf ../100resolvers.txt -o amassintel.txt
+	amass intel -active -whois -d $domain -cidr $ipranges -timeout 100 -rf ../100resolvers.txt -o amassintel.txt
 else
-	amass intel -active -whois -d $domain -rf ../100resolvers.txt -o amassintel.txt
+	amass intel -active -whois -d $domain -rf -timeout 100 ../100resolvers.txt -o amassintel.txt
 fi
 
 #filter results from amass intel file
@@ -100,9 +100,9 @@ sleep 5
 #don't use subdomains.txt if 0 results from intel
 if [[ -s subdomains.txt ]]
 then
-	amass enum -active -d $domain -nf subdomains.txt -rf ../100resolvers.txt -nocolor -o amassenum.txt
+	amass enum -active -d $domain -nf subdomains.txt -rf ../100resolvers.txt -timeout 100 -nocolor -o amassenum.txt
 else
-	amass enum -active -d $domain -rf ../100resolvers.txt -nocolor -o amassenum.txt
+	amass enum -active -d $domain -rf ../100resolvers.txt -timeout 100 -nocolor -o amassenum.txt
 fi
 
 #filter results from amass enum file 
