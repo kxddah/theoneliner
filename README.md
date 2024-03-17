@@ -41,6 +41,11 @@ You would have to configure the config files for [Amass](https://github.com/owas
 
 New addition to the script is [Notify](https://github.com/projectdiscovery/notify#provider-config), setup the config file at  `~/.config/notify/provider-config.yaml`
 
+Another addition to the script is Dalfox: Don't forget to change the [your-callback-url] for the dalfox command, this should include your call back URL, if you don't have one then remove `-b [your-callback-url]`
+
+I'll make improvements as I understand the tool better, maybe include more tools like so
+
+
 
 # Running theoneliner
 - Run the recon script

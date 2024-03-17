@@ -213,10 +213,11 @@ input_file="spidering.txt"
 output_file="params1.txt"
 awk -F'[=?]' '!seen[$2]++ && $2 { print $2 }' "$input_file" | sort > "$output_file"
 cat params1.txt | anew params.txt
+awk '{print "https://" $0}' resolvedsubs.txt > resolvedsubswithprotocol.txt
 
 #not entirely sure how dalfox uses mining dict wordlist, will read-up more
 sleep 2
 printf '\nRunning Dalfox\n' | pv -qL 50 | $lolcat
 sleep 5
-dalfox file resolvedsubs.txt --mining-dict-word params.txt --waf-evasion -b [your-callback-url] --output dalfox.txt
+dalfox file resolvedsubswithprotocol.txt --mining-dict-word params.txt -F --waf-evasion -b [your-callback-url] --output dalfox.txt
 echo "Dalfox scan complete" | notify -silent
