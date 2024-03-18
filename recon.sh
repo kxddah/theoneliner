@@ -93,21 +93,21 @@ rm amassintel.txt
 
 
 #amass enum
-sleep 2
-printf '\nRunning Amass Enum\n' | pv -qL 50 | $lolcat
-sleep 5
+#sleep 2
+#printf '\nRunning Amass Enum\n' | pv -qL 50 | $lolcat
+#sleep 5
 
 #don't use subdomains.txt if 0 results from intel
-if [[ -s subdomains.txt ]]
-then
-	amass enum -active -d $domain -nf subdomains.txt -rf ../100resolvers.txt -timeout 100 -nocolor -o amassenum.txt
-else
-	amass enum -active -d $domain -rf ../100resolvers.txt -timeout 100 -nocolor -o amassenum.txt
-fi
+#if [[ -s subdomains.txt ]]
+#then
+#	amass enum -active -d $domain -nf subdomains.txt -rf ../100resolvers.txt -timeout 100 -nocolor -o amassenum.txt
+#else
+#	amass enum -active -d $domain -rf ../100resolvers.txt -timeout 100 -nocolor -o amassenum.txt
+#fi
 
 #filter results from amass enum file 
-cat amassenum.txt | grep $domain | anew subdomains.txt
-rm amassenum.txt
+#cat amassenum.txt | grep $domain | anew subdomains.txt
+#rm amassenum.txt
 
 #Running subfinder
 sleep 2
