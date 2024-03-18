@@ -156,32 +156,33 @@ sleep 5
 cat subdomains.txt | gau --providers wayback,commoncrawl,otx,urlscan | tee spidering.txt
 
 #Running Katana
-sleep 2
-printf '\nSpidering using Katana\n' | pv -qL 50 | $lolcat
-sleep 5
-katana -list subdomains.txt -d 4 -jc -rl 50 | tee tempfile.txt
-cat spidering.txt | anew tempfile.txt
-
-#Running Waymore
 #sleep 2
-#printf '\nSpidering using Waymore\n' | pv -qL 50 | $lolcat
+#printf '\nSpidering using Katana\n' | pv -qL 50 | $lolcat
 #sleep 5
-#python3 /opt/waymore/waymore.py -i subdomains.txt -mode U | tee tempfile.txt
-#cat spidering.txt | anew tempfile.txt
+#katana -list subdomains.txt -d 4 -jc -rl 50 | tee tempfile.txt
+#cat tempfile.txt | anew spidering.txt
+
+Running Waymore
+sleep 2
+printf '\nSpidering using Waymore\n' | pv -qL 50 | $lolcat
+sleep 5
+#!!!please mention path to your waymore.py file
+python3 /opt/waymore/waymore.py -i $domain -mode U | tee tempfile.txt 
+cat tempfile.txt | anew spidering.txt
 
 Running waybackurls
 sleep 2
 printf '\Collecting URLs using waybackurls\n' | pv -qL 50 | $lolcat
 sleep 5
 cat subdomains.txt | waybackurls > tempfile.txt
-cat spidering.txt | anew tempfile.txt
+cat tempfile.txt | anew spidering.txt
 
 
 sleep 2
 printf '\nSpidering using GoSpider\n' | pv -qL 50 | $lolcat
 sleep 5
 gospider -S subdomains.txt --js --subs --sitemap -a -w -r -o tempfile.txt
-cat spidering.txt | anew tempfile.txt
+cat tempfile.txt | anew spidering.txt
 rm tempfile.txt
 
 #removing duplicate entries
