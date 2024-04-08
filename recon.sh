@@ -84,7 +84,7 @@ elif [[ -z $asn && ! -z $ipranges ]]
 then
 	amass intel -active -whois -d $domain -cidr $ipranges -timeout 100 -rf ../100resolvers.txt -o amassintel.txt
 else
-	amass intel -active -whois -d $domain -rf -timeout 100 ../100resolvers.txt -o amassintel.txt
+	amass intel -active -whois -d $domain -timeout 100 -rf ../100resolvers.txt -o amassintel.txt
 fi
 
 #filter results from amass intel file
