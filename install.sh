@@ -51,6 +51,7 @@ go install github.com/tomnomnom/waybackurls@latest
 go install -v github.com/tomnomnom/anew@latest
 go install github.com/bitquark/shortscan/cmd/shortscan@latest
 go install github.com/BishopFox/jsluice/cmd/jsluice@latest
+go install github.com/hahwul/dalfox/v2@latest
 
 cd /opt/
 git clone https://github.com/vortexau/dnsvalidator.git
