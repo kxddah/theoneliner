@@ -1,7 +1,5 @@
 #!/bin/bash
 
-
-#Need not run this one, I usually use this on a fresh VPS instance, included in this repo for my convenience 
 sudo apt-get -y update
 sudo apt-get -y upgrade
 sudo apt-get install -y python3
@@ -12,149 +10,103 @@ sudo apt-get install -y moreutils
 sudo apt install -y lolcat
 sudo apt install -y fortune
 sudo apt install -y pv
+sudo apt-get install -y jq
+sudo apt install -y crunch
 
 lolcat=/usr/games/lolcat
 fortune=/usr/games/fortune
 
-#installing amass
-sleep 2
-printf '\nInstalling Amass\n' | pv -qL 50 | $lolcat
-sleep 5
-cd /opt/
-go install -v github.com/owasp-amass/amass/v3/...@master
-cd ..
-mkdir ~/.config
-mkdir ~/.config/amass
+wget https://go.dev/dl/go1.22.5.linux-amd64.tar.gz
+rm -rf /usr/local/go && tar -C /usr/local -xzf go1.22.5.linux-amd64.tar.gz
+export PATH=$PATH:/usr/local/go/bin
+source ~/.profile
+GO_OUTPUT=$(go version)
+if [[ "$GO_OUTPUT" == go\ version* ]]; then
+    echo "Go Installed"
+else
+    echo "Error installing Go"
+    exit 1
+fi
+rm go1.22.5.linux-amd64.tar.gz
+
+go install -v github.com/owasp-amass/amass/v4/...@master
+mkdir ~/.config && mkdir ~/.config/amass
 touch ~/.config/amass/config.ini
 
-#installing go
-sleep 2
-printf '\nInstalling Golang\n' | pv -qL 50 | $lolcat
-sleep 5
-wget https://go.dev/dl/go1.20.4.linux-amd64.tar.gz
-tar -C /usr/local -xzf go1.20.4.linux-amd64.tar.gz
-echo 'export PATH=$PATH:/usr/local/go/bin' >> /root/.bashrc
-echo 'export PATH=$PATH:~/go/bin/'
-source ~/.profile
-go version
+go install github.com/ffuf/ffuf/v2@latest
 
-sleep 2
-printf '\nInstalling ffuf\n' | pv -qL 50 | $lolcat
-sleep 5
-go install github.com/ffuf/ffuf@latest
+go install -v github.com/projectdiscovery/pdtm/cmd/pdtm@latest
+pdtm -ia
+mkdir ~/.config/subfinder
+touch ~/.config/subfinder/provider-config.yaml
+mkdir ~/.config/notify
+touch  ~/.config/notify/provider-config.yaml
 
-sleep 2
-printf '\nInstalling DNSValidator\n' | pv -qL 50 | $lolcat
-sleep 5
+go install github.com/tomnomnom/meg@latest
+go install github.com/jaeles-project/gospider@latest
+go install github.com/lc/gau/v2/cmd/gau@latest
+go install github.com/tomnomnom/assetfinder@latest
+go install github.com/hakluke/hakrawler@latest
+go install github.com/tomnomnom/waybackurls@latest
+go install -v github.com/tomnomnom/anew@latest
+go install github.com/bitquark/shortscan/cmd/shortscan@latest
+go install github.com/BishopFox/jsluice/cmd/jsluice@latest
+
 cd /opt/
 git clone https://github.com/vortexau/dnsvalidator.git
 cd dnsvalidator
 python3 setup.py install
-cd /
 
-sleep 2
-printf '\nInstalling httpx\n' | pv -qL 50 | $lolcat
-sleep 5
-go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest
+cd /opt/
+git clone https://github.com/EnableSecurity/wafw00f.git
+cd wafw00f
+python3 setup.py install
 
-sleep 2
-printf '\nInstalling meg\n' | pv -qL 50 | $lolcat
-sleep 5
-go install github.com/tomnomnom/meg@latest
+cd /opt/
+git clone https://github.com/ticarpi/jwt_tool
+cd jwt_tool
+python3 -m pip install -r requirements.txt
 
-sleep 2
-printf '\nInstalling Subfinder\n' | pv -qL 50 | $lolcat
-sleep 5
-go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
-mkdir ~/.config/subfinder
-touch ~/.config/subfinder/provider-config.yaml
+cd /opt/
+git clone https://github.com/defparam/smuggler.git
 
-sleep 2
-printf '\nInstalling Gospider\n' | pv -qL 50 | $lolcat
-sleep 5
-go install github.com/jaeles-project/gospider@latest
+cd /opt/
+git clone --depth 1 https://github.com/sqlmapproject/sqlmap.git sqlmap-dev
 
-sleep 2
-printf '\nInstalling Gau\n' | pv -qL 50 | $lolcat
-sleep 5
-go install github.com/lc/gau/v2/cmd/gau@latest
+cd /opt/
+wget https://storage.googleapis.com/caido-releases/v0.38.0/caido-cli-v0.38.0-linux-x86_64.tar.gz
+tar -xvf caido-cli-v0.38.0-linux-x86_64.tar.gz
+rm caido-cli-v0.38.0-linux-x86_64.tar.gz
 
-sleep 2
-printf '\nInstalling Assetfinder\n' | pv -qL 50 | $lolcat
-sleep 5
-go install github.com/tomnomnom/assetfinder@latest
+cd /opt/
+curl -sLO https://github.com/epi052/feroxbuster/releases/latest/download/feroxbuster_amd64.deb.zip
+unzip feroxbuster_amd64.deb.zip
+sudo apt install ./feroxbuster_*_amd64.deb
+rm -rf feroxbuster_*_amd64.deb
+rm -rf feroxbuster_amd64.deb.zip
+rm -rf feroxbuster.tmp0-stripped
 
-sleep 2
-printf '\nInstalling Hakrawler\n' | pv -qL 50 | $lolcat
-sleep 5
-go install github.com/hakluke/hakrawler@latest
+cd /opt/
+git clone https://github.com/s0md3v/Arjun.git
+cd Arjun
+python3 setup.py install
 
-sleep 2
-printf '\nInstalling ASNmap\n' | pv -qL 50 | $lolcat
-sleep 5
-go install github.com/projectdiscovery/asnmap/cmd/asnmap@latest
-
-sleep 2
-printf '\nInstalling Aquatone\n' | pv -qL 50 | $lolcat
-sleep 5
-apt-get install -y chromium
-cd /opt
-wget https://github.com/michenriksen/aquatone/releases/download/v1.7.0/aquatone_linux_amd64_1.7.0.zip
-unzip aquatone_linux_amd64_1.7.0.zip
-rm LICENSE.txt README.md aquatone_linux_amd64_1.7.0.zip
-cp aquatone /usr/local/bin/
-cd /opt
-
-sleep 2
-printf '\nInstalling ReconFTW\n' | pv -qL 50 | $lolcat
-sleep 5
-git clone https://github.com/six2dez/reconftw
-cd reconftw/
+cd /opt/
+git clone https://github.com/0xacb/recollapse.git
+cd recollapse
 ./install.sh
 
-sleep 2
-printf '\nInstalling Waymore\n' | pv -qL 50 | $lolcat
-sleep 5
+cd /opt/
+wget https://github.com/assetnote/kiterunner/releases/download/v1.0.2/kiterunner_1.0.2_linux_amd64.tar.gz
+tar -xvf kiterunner_1.0.2_linux_amd64.tar.gz
+mv kr /usr/local/bin
+rm kiterunner_1.0.2_linux_amd64.tar.gz
+
 cd /opt/
 git clone https://github.com/xnl-h4ck3r/waymore.git
 cd waymore
 sudo pip3 install -r requirements.txt
 sudo python setup.py install
 
-sleep 2
-printf '\nInstalling waybackurls\n' | pv -qL 50 | $lolcat
-sleep 5
-go install github.com/tomnomnom/waybackurls@latest
-
-sleep 2
-printf '\nInstalling Anew\n' | pv -qL 50 | $lolcat
-sleep 5
-go install -v github.com/tomnomnom/anew@latest
-
-sleep 2
-printf '\nInstalling nuclei\n' | pv -qL 50 | $lolcat
-sleep 5
-go install -v github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest
-
-sleep 2
-printf '\nInstalling notify\n' | pv -qL 50 | $lolcat
-sleep 5
-go install -v github.com/projectdiscovery/notify/cmd/notify@latest
-mkdir ~/.config/notify
-touch  ~/.config/notify/provider-config.yaml
-
-#add option for yes or no, for both wordlist
-sleep 2
-printf '\nDownloading Seclist and Assetnote wordlists\n' | pv -qL 50 | $lolcat
-sleep 5
-cd /
-mkdir bounty
-cd bounty/
-mkdir wordlists
-cd wordlists/
-git clone https://github.com/danielmiessler/SecLists.git
-wget -r --no-parent -R "index.html*" https://wordlists-cdn.assetnote.io/data/ -nH 
-
-sleep 2
 printf '\nHappy Hacking :)\n' | pv -qL 40 | $lolcat
 sleep 5

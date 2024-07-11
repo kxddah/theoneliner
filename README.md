@@ -29,8 +29,7 @@ git clone https://github.com/kxddah/theoneliner.git
 cd theoneliner
 ```
 
-The `install.sh` would install everything mentioned in the tool section above along with setting up [Golang](https://go.dev/doc/install). If you have golang or any other tools installed just comment that part out or manually install the other tools.
-Do note that this script downloads seclists and assetnote wordlists as well, these are big files and take time to download, comment it out if want to skip it (might add flags and options to skip it in future)
+The `install.sh` would install everything mentioned in the tool section above along with setting up [Golang](https://go.dev/doc/install).
 ```bash
 ./install.sh
 ```
