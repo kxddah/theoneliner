@@ -2,6 +2,12 @@
 
 Recon that could've been done with a one liner but why not make a 200 line script :)
 
+P.S. You can signup on Linode using my referral link to receive a $100, 60-day credit 🙌
+</p>
+<p align="center">
+<a href="https://www.linode.com/lp/refer/?r=f8dc2f93c542c5a771e4d2a46f462caa91b79ba4" target="_blank"> 
+<img src="https://github.com/kxddah/theoneliner/images/linode.png"/>
+
 # Description
 A basic recon script for subdomain enumeration, spidering, port scanning and nuclei, the script consists of the following tools:
 ```text
