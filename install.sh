@@ -1,5 +1,24 @@
 #!/bin/bash
 
+#creating paths
+# Get the current shell
+current_shell=$(echo $SHELL)
+if [[ $current_shell == *"zsh"* ]]; then
+    echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.zshrc
+     echo 'export PATH=$PATH:~/go/bin/' >> ~/.zshrc
+     echo 'export PATH=$PATH:/root/.pdtm/go/bin' >> ~/.zshrc
+     source ~/.zshrc
+
+elif [[ $current_shell == *"bash"* ]]; then
+     echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc
+     echo 'export PATH=$PATH:~/go/bin/' >> ~/.bashrc
+     echo 'export PATH=$PATH:/root/.pdtm/go/bin' >> ~/.bashrc
+     source ~/.bashrc
+
+else
+    echo "Please set the paths for your shell: $current_shell"
+fi
+
 sudo apt-get -y update
 sudo apt-get -y upgrade
 sudo apt-get install -y python3
@@ -108,6 +127,7 @@ git clone https://github.com/xnl-h4ck3r/waymore.git
 cd waymore
 sudo pip3 install -r requirements.txt
 sudo python setup.py install
+chmod +x /opt/waymore/waymore/waymore.py
 
 printf '\nHappy Hacking :)\n' | pv -qL 40 | $lolcat
 sleep 5
