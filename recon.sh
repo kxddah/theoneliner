@@ -73,7 +73,7 @@ echo -e "DNS Resolvers collected, initating enumeration and scanning" | notify -
 sleep 2
 printf '\nRunning Amass Intel\n' | pv -qL 50 | $lolcat
 sleep 5
-
+touch amassintel.txt
 if [[ ! -z $asn && ! -z $ipranges ]]
 then
 	amass intel -active -whois -d $domain -asn $asn -cidr $ipranges -timeout 100 -rf ../100resolvers.txt -o amassintel.txt
@@ -113,7 +113,7 @@ rm amassintel.txt
 sleep 2
 printf '\nRunning Subfinder\n' | pv -qL 50 | $lolcat
 sleep 5
-
+touch subfinder.txt
 subfinder -dL subdomains.txt -all -o subfinder.txt -pc ~/.config/subfinder/provider-config.yaml -rL ../100resolvers.txt -nc
 
 #combining results from subfinder into final file
