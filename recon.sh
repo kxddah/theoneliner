@@ -1,7 +1,5 @@
 #!/bin/bash
 
-#Improvement: need to add flags to skip tools, stdin files
-
 lolcat=/usr/games/lolcat
 fortune=/usr/games/fortune
 
@@ -16,17 +14,35 @@ elif [[ ! "$domain" =~ $validate ]];
 then
 	echo "Invalid domain name! Exiting..." && exit 1
 fi
-printf '\n'
-printf '\n'
+printf '\n\n'
 echo "Enter organisation name: "
 read org
 printf '\n'
+
+echo -e "\nPlease mention the file path for waymore.py"
+read waymore_file_path
+if [[ -n $waymore_file_path ]]; then
+	echo -e "\nNo input, Waymore path set at /opt/waymore/waymore/waymore.py"
+	waymore_file_path="/opt/waymore/waymore/waymore.py"
+else
+	echo -e "\nWaymore path set successfully!"
+fi
+
+echo -e "\n\nDo you wish to use Dalfox? Enter your callback URL if yes (Press enter if no)"
+read dalfox_callbackurl
+
+echo -e "\n\nDo you wish to run a portscan after subdomain enumeration? Recommended not to run a portscan if target is behind a WAF. (Press enter if no)"
+read portscan_answer
+if [[ portscan_answer ]]; then
+	nuclei_input_file=portscan.txt
+else
+	nuclei_input_file=resolvedsubs.txt
+fi
 
 #making directory for target
 mkdir $domain
 cd $domain
 cp ../params.txt ./
-
 
 echo '████████╗██╗░░██╗███████╗░█████╗░███╗░░██╗███████╗██╗░░░░░██╗███╗░░██╗███████╗██████╗░'| $lolcat
 echo '╚══██╔══╝██║░░██║██╔════╝██╔══██╗████╗░██║██╔════╝██║░░░░░██║████╗░██║██╔════╝██╔══██╗'| $lolcat
@@ -38,36 +54,110 @@ printf '\n\n'
 $fortune | $lolcat
 printf '\n\n'
 
-#fetching all asns, not sure if the list is updated, let me know if any better solutions present
-value=$(curl https://ftp.ripe.net/ripe/asnames/asn.txt)
+# Function to validate comma-separated input
+validate_comma_separated() {
+    local input="$1"
+    local validate="^([0-9a-zA-Z./]+,)*[0-9a-zA-Z./]+$"
+    [[ "$input" =~ $validate ]]
+}
 
-#saving asns and ipranges in vars
-asn=$(echo "$value" | grep -i "\<"$org"\>" | awk '{print "AS"$1}' | paste -sd,)
+# Fetching all ASNs
+value=$(curl -s https://ftp.ripe.net/ripe/asnames/asn.txt)
 
-#asnmap will probably throw an error, probably cause their api is usually down - https://status.projectdiscovery.io/
-if [[ ! -z $asn ]]
+# Saving ASNs and IP ranges in vars
+asn=$(echo "$value" | grep -i "\<$org\>" | awk '{print "AS"$1}' | paste -sd,)
+ipranges=""
+
+if [[ -z $asn && -z $ipranges ]]
 then
-        ipranges=$(asnmap -asn $(echo $asn))
-else
-        ipranges=$(asnmap -org $(echo $org))
-fi
+    echo -e "No ASNs and Subnets found. Do you want to add both manually? (press enter if no)"
+    read answer
+    if [[ -n $answer ]]
+    then
+        while true; do
+            echo -e "You can visit bgp.he.net for the values"
+            echo -e "Enter ASNs (Comma-separated):"
+            read asn
+            if validate_comma_separated "$asn"; then
+                break
+            else
+                echo "Invalid input. Please enter comma-separated values."
+            fi
+        done
 
-ipranges=$(echo "$ipranges" | awk '{print $1}' | paste -sd,)
+        while true; do
+            echo -e "Enter Subnets (Comma-separated):"
+            read ipranges
+            if validate_comma_separated "$ipranges"; then
+                break
+            else
+                echo "Invalid input. Please enter comma-separated values."
+            fi
+        done
+    else
+        echo -e "No ASNs and Subnets were added."
+    fi
+elif [[ -z $asn && -n $ipranges ]]
+then
+    echo -e "No ASNs found. Do you want to add ASNs manually? (press enter if no)"
+    read answer
+    if [[ -n $answer ]]
+    then
+        while true; do
+            echo -e "You can visit bgp.he.net for the values"
+            echo -e "Enter ASNs (Comma-separated):"
+            read asn
+            if validate_comma_separated "$asn"; then
+                break
+            else
+                echo "Invalid input. Please enter comma-separated values."
+            fi
+        done
+    else
+        echo -e "No ASNs were added."
+    fi
+elif [[ -n $asn && -z $ipranges ]]
+then
+    echo -e "No Subnets found. Do you want to add Subnets manually? (press enter if no)"
+    read answer
+    if [[ -n $answer ]]
+    then
+        while true; do
+            echo -e "You can visit bgp.he.net for the values"
+            echo -e "Enter Subnets (Comma-separated):"
+            read ipranges
+            if validate_comma_separated "$ipranges"; then
+                break
+            else
+                echo "Invalid input. Please enter comma-separated values."
+            fi
+        done
+    else
+        echo -e "No Subnets were added."
+    fi
+else
+    echo -e "ASNs and Subnets are already provided."
+fi
 
 echo -e "ASNs: "$asn"\n"
 echo -e "IP/ranges: "$ipranges"\n"
 
-#dnsvalidator
-sleep 2
-printf '\nCollecting DNS resolvers using DNSValidator\n' | pv -qL 50 | $lolcat
-sleep 5
-
-dnsvalidator --silent -tL https://public-dns.info/nameservers.txt -threads 75 | tee resolvers.txt
-sort -R resolvers.txt | tail -n 150 > 100resolvers.txt
-rm resolvers.txt
-mv 100resolvers.txt ../100resolvers.txt
-echo -e "DNS Resolvers collected, initating enumeration and scanning" | notify -silent
-
+echo -e "Do you want to run DNSValiator? can take a while to run. (press enter if no)"
+read answer
+if [[ $answer ]]; then
+    #dnsvalidator
+	printf '\nCollecting DNS resolvers using DNSValidator\n' | pv -qL 50 | $lolcat
+	sleep 5
+	dnsvalidator --silent -tL https://public-dns.info/nameservers.txt -threads 50 | tee resolvers.txt
+	sort -R resolvers.txt | tail -n 150 > 100resolvers.txt
+	rm resolvers.txt
+	mv 100resolvers.txt ../100resolvers.txt
+	resolver_file_path="../100resolvers.txt"
+	echo -e "DNS Resolvers collected, initating enumeration and scanning" | notify -silent
+else
+    echo -e "Setting Resolver file to the default"
+	resolver_file_path="../resolvers.txt"
+fi
 
 #amass
 sleep 2
@@ -76,21 +166,20 @@ sleep 5
 touch amassintel.txt
 if [[ ! -z $asn && ! -z $ipranges ]]
 then
-	amass intel -active -whois -d $domain -asn $asn -cidr $ipranges -timeout 100 -rf ../100resolvers.txt -o amassintel.txt
+	amass intel -active -whois -d $domain -asn $asn -cidr $ipranges -timeout 500 -rf $resolver_file_path -o amassintel.txt
 elif [[ ! -z $asn && -z $ipranges ]]
 then
-	amass intel -active -whois -d $domain -asn $asn -timeout 100 -rf ../100resolvers.txt -o amassintel.txt
+	amass intel -active -whois -d $domain -asn $asn -timeout 500 -rf $resolver_file_path -o amassintel.txt
 elif [[ -z $asn && ! -z $ipranges ]]
 then
-	amass intel -active -whois -d $domain -cidr $ipranges -timeout 100 -rf ../100resolvers.txt -o amassintel.txt
+	amass intel -active -whois -d $domain -cidr $ipranges -timeout 500 -rf $resolver_file_path -o amassintel.txt
 else
-	amass intel -active -whois -d $domain -timeout 100 -rf ../100resolvers.txt -o amassintel.txt
+	amass intel -active -whois -d $domain -timeout 500 -rf $resolver_file_path -o amassintel.txt
 fi
 
 #filter results from amass intel file
 cat amassintel.txt | grep $domain | tee subdomains.txt
 rm amassintel.txt
-
 
 #amass enum
 #sleep 2
@@ -100,9 +189,9 @@ rm amassintel.txt
 #don't use subdomains.txt if 0 results from intel
 #if [[ -s subdomains.txt ]]
 #then
-#	amass enum -active -d $domain -nf subdomains.txt -rf ../100resolvers.txt -timeout 100 -nocolor -o amassenum.txt
+#	amass enum -active -d $domain -nf subdomains.txt -rf $resolver_file_path -timeout 100 -nocolor -o amassenum.txt
 #else
-#	amass enum -active -d $domain -rf ../100resolvers.txt -timeout 100 -nocolor -o amassenum.txt
+#	amass enum -active -d $domain -rf $resolver_file_path -timeout 100 -nocolor -o amassenum.txt
 #fi
 
 #filter results from amass enum file 
@@ -114,7 +203,7 @@ sleep 2
 printf '\nRunning Subfinder\n' | pv -qL 50 | $lolcat
 sleep 5
 touch subfinder.txt
-subfinder -dL subdomains.txt -all -o subfinder.txt -pc ~/.config/subfinder/provider-config.yaml -rL ../100resolvers.txt -nc
+subfinder -dL subdomains.txt -all -o subfinder.txt -pc ~/.config/subfinder/provider-config.yaml -rL $resolver_file_path -nc
 
 #combining results from subfinder into final file
 cat subfinder.txt | grep $domain | anew subdomains.txt
@@ -124,7 +213,6 @@ rm subfinder.txt
 sleep 2
 printf '\nRunning Assetfinder\n' | pv -qL 50 | $lolcat
 sleep 5
-
 touch assetfinder.txt
 assetfinder $domain | tee assetfinder.txt
 
@@ -136,7 +224,6 @@ rm assetfinder.txt
 sleep 2
 printf '\nFiltering valid domains using HTTPX\n' | pv -qL 50 | $lolcat
 sleep 5
-
 touch resolvedsubs.txt
 httpx -l subdomains.txt -fc 404 -silent -rl 10 -timeout 15 -o resolvedsubs.txt
 
@@ -155,6 +242,7 @@ printf '\Collecting URLs using GAU\n' | pv -qL 50 | $lolcat
 sleep 5
 cat subdomains.txt | gau --providers wayback,commoncrawl,otx,urlscan | tee spidering.txt
 
+#issues with katana, need to check
 #Running Katana
 #sleep 2
 #printf '\nSpidering using Katana\n' | pv -qL 50 | $lolcat
@@ -166,8 +254,7 @@ Running Waymore
 sleep 2
 printf '\nSpidering using Waymore\n' | pv -qL 50 | $lolcat
 sleep 5
-#!!!please mention path to your waymore.py file
-python3 /opt/waymore/waymore.py -i $domain -mode U | tee tempfile.txt 
+python3 $waymore_file_path -i $domain -mode U | tee tempfile.txt 
 cat tempfile.txt | anew spidering.txt
 
 Running waybackurls
@@ -176,7 +263,6 @@ printf '\Collecting URLs using waybackurls\n' | pv -qL 50 | $lolcat
 sleep 5
 cat subdomains.txt | waybackurls > tempfile.txt
 cat tempfile.txt | anew spidering.txt
-
 
 sleep 2
 printf '\nSpidering using GoSpider\n' | pv -qL 50 | $lolcat
@@ -189,25 +275,26 @@ rm tempfile.txt
 cat spidering.txt | sort -u | uniq | sponge spidering.txt
 echo -e "Spidering for "$domain" has been completed, total links found: $(cat spidering.txt | wc -l)\n" | notify -silent
 
+if [[ -n $portscan_answer ]]; then
+	#portscanning
+	sleep 2
+	printf '\nPort scanning using Naabu\n' | pv -qL 50 | $lolcat
+	sleep 5
+	naabu -l subdomains.txt -p 1-65535 -rate 2000 -timeout 5000 | tee portscan.txt
+	echo -e "Portscanning for "$domain" has been completed\n" | notify -silent
+else
+	echo -e "\nPort Scanning Skipped, Nuclei will run on resolved subdomains"
+fi
 
-#portscanning
-sleep 2
-printf '\nPort scanning using Naabu\n' | pv -qL 50 | $lolcat
-sleep 5
-naabu -l subdomains.txt -p 1-65535 -rate 2000 -timeout 5000 | tee portscan.txt
-echo -e "Portscanning for "$domain" has been completed\n" | notify -silent
-
-
-#Running nuclei on portscanned unresolved hosts
+#Running nuclei
 sleep 2
 printf '\nVulnerability scanning using Nuclei\n' | pv -qL 50 | $lolcat
 sleep 5
-nuclei -l portscan.txt -rl 1000 -t ~/nuclei-templates/ | tee nuclei.txt
+nuclei -l $nuclei_input_file -rl 1000 -t ~/nuclei-templates/ | tee nuclei.txt
 nucleilow=$(cat nuclei.txt | grep '32mlow' | wc -l)
 nucleimedium=$(cat nuclei.txt | grep '33mmedium' | wc -l)
 nucleihigh=$(cat nuclei.txt | grep '208mhigh' | wc -l)
 echo "Nuclei scan results: High: "$nucleihigh"  Medium: "$nucleimedium"  Low: "$nucleilow"" | notify -silent
-
 
 #preparing params.txt from spidering.txt
 input_file="spidering.txt"
@@ -217,8 +304,12 @@ cat params1.txt | anew params.txt
 awk '{print "https://" $0}' resolvedsubs.txt > resolvedsubswithprotocol.txt
 
 #not entirely sure how dalfox uses mining dict wordlist, will read-up more
-sleep 2
-printf '\nRunning Dalfox\n' | pv -qL 50 | $lolcat
-sleep 5
-dalfox file resolvedsubswithprotocol.txt --mining-dict-word params.txt -F --waf-evasion -b [your-callback-url] --output dalfox.txt
-echo "Dalfox scan complete" | notify -silent
+if [[ -n $dalfox_callbackurl ]]; then
+	sleep 2
+	printf '\nRunning Dalfox\n' | pv -qL 50 | $lolcat
+	sleep 5
+	dalfox file resolvedsubswithprotocol.txt --mining-dict-word params.txt -F --waf-evasion -b 	$dalfox_callbackurl --output dalfox.txt
+	echo "Dalfox scan complete" | notify -silent
+else
+	echo -e "\nDalfox skipped"
+fi

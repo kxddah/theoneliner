@@ -50,7 +50,8 @@ rm go1.22.5.linux-amd64.tar.gz
 
 go install -v github.com/owasp-amass/amass/v4/...@master
 mkdir ~/.config && mkdir ~/.config/amass
-touch ~/.config/amass/config.ini
+curl -o ~/.config/amass/datasources.yaml https://raw.githubusercontent.com/owasp-amass/amass/master/examples/datasources.yaml
+curl -o ~/.config/amass/config.yaml https://raw.githubusercontent.com/owasp-amass/amass/master/examples/config.yaml
 
 go install github.com/ffuf/ffuf/v2@latest
 
@@ -59,8 +60,10 @@ pdtm -ia
 mkdir ~/.config/subfinder
 touch ~/.config/subfinder/provider-config.yaml
 mkdir ~/.config/notify
-touch  ~/.config/notify/provider-config.yaml
+curl -o ~/.config/notify/provider-config.yaml https://raw.githubusercontent.com/projectdiscovery/notify/328cc3d7d1f376759182a123764dd5f5a36ec654/cmd/integration-test/test-config.yaml
 
+source ~/.zshrc
+source ~/.bashrc
 go install github.com/tomnomnom/meg@latest
 go install github.com/jaeles-project/gospider@latest
 go install github.com/lc/gau/v2/cmd/gau@latest
@@ -71,6 +74,8 @@ go install -v github.com/tomnomnom/anew@latest
 go install github.com/bitquark/shortscan/cmd/shortscan@latest
 go install github.com/BishopFox/jsluice/cmd/jsluice@latest
 go install github.com/hahwul/dalfox/v2@latest
+
+curl -o ~/.gau.toml https://raw.githubusercontent.com/lc/gau/master/.gau.toml
 
 cd /opt/
 git clone https://github.com/vortexau/dnsvalidator.git
