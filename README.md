@@ -1,6 +1,6 @@
 # THEONELINER
 
-Recon that could've been done with a one liner but why not make a 200 line script :)
+Recon that could've been done with a one liner but why not make a 300 line script :)
 
 P.S. You can signup on Linode using my referral link to receive a $100, 60-day credit 🙌
 </p>
@@ -12,20 +12,19 @@ P.S. You can signup on Linode using my referral link to receive a $100, 60-day c
 A basic recon script for subdomain enumeration, spidering, port scanning and nuclei, the script consists of the following tools:
 ```text
 DnsValidator
-Amass
 Subfinder
 Assetfinder
 Httpx
 Gau
 Waymore
-Katana
+~Katana~
 Gospider
 Naabu
 Nuclei
 Dalfox
 ```
 
-It is recommended to run this on a VPS as I had designed this with ease of setup on new VPS instances in mind.
+It is recommended to run this on a VPS as I had written this with ease of setup on new VPS instances in mind.
 
 
 # Installation
@@ -48,9 +47,6 @@ New addition to the script is [Notify](https://github.com/projectdiscovery/notif
 
 Another addition to the script is Dalfox: Don't forget to change the [your-callback-url] for the dalfox command, this should include your call back URL, if you don't have one then remove `-b [your-callback-url]`
 
-I'll make improvements as I understand the tool better, maybe include more tools like so
-
-
 
 # Running theoneliner
 - Run the recon script
@@ -61,8 +57,9 @@ I'll make improvements as I understand the tool better, maybe include more tools
 - The script would collect DNS resolvers using DnsValidator, then collect subdomains from Amass, Subfinder and Assetfinder. It'll run it through httpx to see which ones resolve.
 - Further it will use gau, waymore and katana to find different links and files by spidering and quering 3rd parties.
 - Then it'll run a port scan on the list of unresolved subdomains, this is because the the unresolved subdomain might not be running something on port 443 or 80, but might have different ports open
-- At last it'll put the portscan result into nuceli for vulnerability scanning
-- During all this you could configure Notify to send notifications to discord, slack, etc. This script sends notification on completion of collection of DNS resolvers, subdomain enumeration, spidering, port scan and nuclei scan.
+- Then it'll put the portscan result into nuclei for vulnerability scanning
+- At last it'll run Dalfox, if enabled.
+- During all this you could configure Notify to send notifications to discord, slack, etc. This script sends notification on completion of collection of DNS resolvers, subdomain enumeration, spidering, port scan, nuclei scan and dalfox.
 
 
 # Future improvements:
