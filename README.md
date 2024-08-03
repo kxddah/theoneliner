@@ -17,7 +17,7 @@ Assetfinder
 Httpx
 Gau
 Waymore
-~Katana~
+~~Katana~~
 Gospider
 Naabu
 Nuclei
