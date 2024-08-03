@@ -10,7 +10,7 @@ P.S. You can signup on Linode using my referral link to receive a $100, 60-day c
 
 # Description
 A basic recon script for subdomain enumeration, spidering, port scanning and nuclei, the script consists of the following tools:
-```text
+```markdown
 DnsValidator
 Subfinder
 Assetfinder
