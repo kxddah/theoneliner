@@ -58,7 +58,7 @@ go install github.com/ffuf/ffuf/v2@latest
 go install -v github.com/projectdiscovery/pdtm/cmd/pdtm@latest
 pdtm -ia
 mkdir ~/.config/subfinder
-touch ~/.config/subfinder/provider-config.yaml
+curl -o ~/.config/subfinder/provider-config.yaml https://raw.githubusercontent.com/kxddah/theoneliner/main/subfinder-provider-config.yaml
 mkdir ~/.config/notify
 curl -o ~/.config/notify/provider-config.yaml https://raw.githubusercontent.com/projectdiscovery/notify/328cc3d7d1f376759182a123764dd5f5a36ec654/cmd/integration-test/test-config.yaml
 
