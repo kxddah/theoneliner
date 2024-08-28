@@ -19,10 +19,10 @@ echo "Enter organisation name: "
 read org
 printf '\n'
 
-echo -e "\nPlease mention the file path for waymore.py"
+echo -e "\nPlease mention the file path for waymore.py (Press enter to set it as per install.sh)"
 read waymore_file_path
-if [[ -n $waymore_file_path ]]; then
-	echo -e "\nNo input, Waymore path set at /opt/waymore/waymore/waymore.py"
+if [[ -z $waymore_file_path ]]; then
+	echo -e "\nNo input, path set as per install.sh - /opt/waymore/waymore/waymore.py"
 	waymore_file_path="/opt/waymore/waymore/waymore.py"
 else
 	echo -e "\nWaymore path set successfully!"
@@ -33,7 +33,7 @@ read dalfox_callbackurl
 
 echo -e "\n\nDo you wish to run a portscan after subdomain enumeration? Recommended not to run a portscan if target is behind a WAF. (Press enter if no)"
 read portscan_answer
-if [[ portscan_answer ]]; then
+if [[ $portscan_answer ]]; then
 	nuclei_input_file=portscan.txt
 else
 	nuclei_input_file=resolvedsubs.txt
@@ -250,7 +250,7 @@ cat subdomains.txt | gau --providers wayback,commoncrawl,otx,urlscan | tee spide
 #katana -list subdomains.txt -d 4 -jc -rl 50 | tee tempfile.txt
 #cat tempfile.txt | anew spidering.txt
 
-Running Waymore
+#Running Waymore
 sleep 2
 printf '\nSpidering using Waymore\n' | pv -qL 50 | $lolcat
 sleep 5
@@ -264,12 +264,12 @@ sleep 5
 cat subdomains.txt | waybackurls > tempfile.txt
 cat tempfile.txt | anew spidering.txt
 
-sleep 2
-printf '\nSpidering using GoSpider\n' | pv -qL 50 | $lolcat
-sleep 5
-gospider -S subdomains.txt --js --subs --sitemap -a -w -r -o tempfile.txt
-cat tempfile.txt | anew spidering.txt
-rm tempfile.txt
+#sleep 2
+#printf '\nSpidering using GoSpider\n' | pv -qL 50 | $lolcat
+#sleep 5
+#gospider -S subdomains.txt --js --subs --sitemap -a -w -r | tee tempfile.txt
+#cat tempfile.txt | anew spidering.txt
+#rm tempfile.txt
 
 #removing duplicate entries
 cat spidering.txt | sort -u | uniq | sponge spidering.txt
