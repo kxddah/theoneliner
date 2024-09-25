@@ -99,7 +99,7 @@ cd /opt/
 git clone --depth 1 https://github.com/sqlmapproject/sqlmap.git sqlmap-dev
 
 cd /opt/
-wget https://storage.googleapis.com/caido-releases/v0.38.0/caido-cli-v0.38.0-linux-x86_64.tar.gz
+wget https://caido.download/releases/v0.38.0/caido-cli-v0.38.0-linux-x86_64.tar.gz
 tar -xvf caido-cli-v0.38.0-linux-x86_64.tar.gz
 rm caido-cli-v0.38.0-linux-x86_64.tar.gz
 
