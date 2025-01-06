@@ -19,6 +19,9 @@ echo "Enter organisation name: "
 read org
 printf '\n'
 
+echo -e "\nPlease answer the following configuration questions:\n"
+
+
 echo -e "\nPlease mention the file path for waymore.py (Press enter to set it as per install.sh)"
 read waymore_file_path
 if [[ -z $waymore_file_path ]]; then
@@ -34,9 +37,26 @@ read dalfox_callbackurl
 echo -e "\n\nDo you wish to run a portscan after subdomain enumeration? Recommended not to run a portscan if target is behind a WAF. (Press enter if no)"
 read portscan_answer
 if [[ $portscan_answer ]]; then
-	nuclei_input_file=portscan.txt
+    nuclei_input_file=portscan.txt
+    echo -e "\n\nEnter rate limit for portscanning (press enter for default 2000)"
+    read portscan_rate
+    if [[ ! $portscan_rate =~ ^[0-9]+$ ]]; then
+        portscan_rate=2000
+        echo -e "\n\nDefault Portscan rate limit value set to 2000"
+    fi
 else
-	nuclei_input_file=resolvedsubs.txt
+    nuclei_input_file=resolvedsubs.txt
+fi
+
+echo -e "\n\nDo you wish to run Nuclei? (Press enter if no)"
+read nuclei_answer
+if [[ $nuclei_answer ]]; then
+    echo -e "\n\nEnter rate limit for Nuclei (press enter for default 200):"
+    read nuclei_rate
+    if [[ ! $nuclei_rate =~ ^[0-9]+$ ]]; then
+        nuclei_rate=200
+        echo -e "\n\nDefault Nuclei rate limit value set to 200"
+    fi
 fi
 
 #making directory for target
@@ -238,7 +258,7 @@ touch spidering.txt
 touch tempfile.txt
 #Running gau
 sleep 2
-printf '\Collecting URLs using GAU\n' | pv -qL 50 | $lolcat
+printf '\nCollecting URLs using GAU\n' | pv -qL 50 | $lolcat
 sleep 5
 cat subdomains.txt | gau --providers wayback,commoncrawl,otx,urlscan | tee spidering.txt
 
@@ -259,7 +279,7 @@ cat tempfile.txt | anew spidering.txt
 
 Running waybackurls
 sleep 2
-printf '\Collecting URLs using waybackurls\n' | pv -qL 50 | $lolcat
+printf '\nCollecting URLs using waybackurls\n' | pv -qL 50 | $lolcat
 sleep 5
 cat subdomains.txt | waybackurls > tempfile.txt
 cat tempfile.txt | anew spidering.txt
@@ -269,7 +289,8 @@ cat tempfile.txt | anew spidering.txt
 #sleep 5
 #gospider -S subdomains.txt --js --subs --sitemap -a -w -r | tee tempfile.txt
 #cat tempfile.txt | anew spidering.txt
-#rm tempfile.txt
+
+rm tempfile.txt
 
 #removing duplicate entries
 cat spidering.txt | sort -u | uniq | sponge spidering.txt
@@ -280,21 +301,26 @@ if [[ -n $portscan_answer ]]; then
 	sleep 2
 	printf '\nPort scanning using Naabu\n' | pv -qL 50 | $lolcat
 	sleep 5
-	naabu -l subdomains.txt -p 1-65535 -rate 2000 -timeout 5000 | tee portscan.txt
+	naabu -l subdomains.txt -p 1-65535 -rate $portscan_rate -timeout 5000 | tee portscan.txt
 	echo -e "Portscanning for "$domain" has been completed\n" | notify -silent
 else
 	echo -e "\nPort Scanning Skipped, Nuclei will run on resolved subdomains"
 fi
 
 #Running nuclei
-sleep 2
-printf '\nVulnerability scanning using Nuclei\n' | pv -qL 50 | $lolcat
-sleep 5
-nuclei -l $nuclei_input_file -rl 1000 -t ~/nuclei-templates/ | tee nuclei.txt
-nucleilow=$(cat nuclei.txt | grep '32mlow' | wc -l)
-nucleimedium=$(cat nuclei.txt | grep '33mmedium' | wc -l)
-nucleihigh=$(cat nuclei.txt | grep '208mhigh' | wc -l)
-echo "Nuclei scan results: High: "$nucleihigh"  Medium: "$nucleimedium"  Low: "$nucleilow"" | notify -silent
+if [[ -n $nuclei_answer ]]; then
+	#portscanning
+    sleep 2
+    printf '\nVulnerability scanning using Nuclei\n' | pv -qL 50 | $lolcat
+    sleep 5
+    nuclei -l $nuclei_input_file -rl $nuclei_rate -t ~/nuclei-templates/ | tee nuclei.txt
+    nucleilow=$(cat nuclei.txt | grep '32mlow' | wc -l)
+    nucleimedium=$(cat nuclei.txt | grep '33mmedium' | wc -l)
+    nucleihigh=$(cat nuclei.txt | grep '208mhigh' | wc -l)
+    echo "Nuclei scan results: High: "$nucleihigh"  Medium: "$nucleimedium"  Low: "$nucleilow"" | notify -silent
+else
+    echo -e "\nNuclei Skipped"
+fi
 
 #preparing params.txt from spidering.txt
 input_file="spidering.txt"
