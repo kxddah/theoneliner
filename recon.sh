@@ -82,10 +82,10 @@ validate_comma_separated() {
 }
 
 # Fetching all ASNs
-value=$(curl -s https://ftp.ripe.net/ripe/asnames/asn.txt)
+#value=$(curl -s https://ftp.ripe.net/ripe/asnames/asn.txt)
 
 # Saving ASNs and IP ranges in vars
-asn=$(echo "$value" | grep -i "\<$org\>" | awk '{print "AS"$1}' | paste -sd,)
+asn=$(curl -s https://ftp.ripe.net/ripe/asnames/asn.txt | grep -i "\<$org\>" | awk '{print "AS"$1}' | paste -sd,)
 ipranges=""
 
 if [[ -z $asn && -z $ipranges ]]
