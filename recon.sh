@@ -50,19 +50,6 @@ fi
 echo -e "\n\nDo you wish to use Dalfox? Enter your callback URL if yes (Press enter if no)"
 read dalfox_callbackurl
 
-echo -e "\n\nDo you wish to run a portscan after subdomain enumeration? Recommended not to run a portscan if target is behind a WAF. (Press enter if no)"
-read portscan_answer
-if [[ $portscan_answer ]]; then
-    nuclei_input_file=portscan.txt
-    echo -e "\n\nEnter rate limit for portscanning (press enter for default 2000)"
-    read portscan_rate
-    if [[ ! $portscan_rate =~ ^[0-9]+$ ]]; then
-        portscan_rate=2000
-        echo -e "\n\nDefault Portscan rate limit value set to 2000"
-    fi
-else
-    nuclei_input_file=resolvedsubs.txt
-fi
 
 echo -e "\n\nDo you wish to run Nuclei? (Press enter if no)"
 read nuclei_answer
