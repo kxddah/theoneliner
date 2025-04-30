@@ -31,6 +31,22 @@ else
 	echo -e "\nWaymore path set successfully!"
 fi
 
+
+echo -e "\n\nDo you wish to run a portscan after subdomain enumeration? Recommended not to run a portscan if target is behind a WAF. (Press enter if no)"
+read portscan_answer
+if [[ $portscan_answer ]]; then
+    nuclei_input_file=portscan.txt
+    echo -e "\n\nEnter rate limit for portscanning (press enter for default 2000)"
+    read portscan_rate
+    if [[ ! $portscan_rate =~ ^[0-9]+$ ]]; then
+        portscan_rate=2000
+        echo -e "\n\nDefault Portscan rate limit value set to 2000"
+    fi
+else
+    nuclei_input_file=resolvedsubs.txt
+fi
+
+
 echo -e "\n\nDo you wish to use Dalfox? Enter your callback URL if yes (Press enter if no)"
 read dalfox_callbackurl
 
@@ -166,7 +182,7 @@ echo -e "Do you want to run DNSValiator? can take a while to run. (press enter i
 read answer
 if [[ $answer ]]; then
     #dnsvalidator
-	printf '\nCollecting DNS resolvers using DNSValidator\n' | pv -qL 50 | $lolcat
+	printf '\nCollecting DNS resolvers using DNSValidator\n' | pv -qL 150 | $lolcat
 	sleep 5
 	dnsvalidator --silent -tL https://public-dns.info/nameservers.txt -threads 50 | tee resolvers.txt
 	sort -R resolvers.txt | tail -n 150 > 100resolvers.txt
@@ -239,6 +255,14 @@ assetfinder $domain | tee assetfinder.txt
 #combining results from assetfinder to the final list
 cat assetfinder.txt | grep $domain | anew subdomains.txt
 rm assetfinder.txt
+
+#Running puredns
+sleep 2
+printf '\nRunning PureDNS\n' | pv -qL 50 | $lolcat
+sleep 5
+touch puredns.txt
+puredns bruteforce $subdomain_list $domain --resolvers $resolver_file_path | tee puredns.txt
+cat puredns.txt | grep $domain | anew subdomains.txt
 
 #Running httpx
 sleep 2

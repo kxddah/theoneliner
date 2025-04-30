@@ -134,5 +134,13 @@ sudo pip3 install -r requirements.txt
 sudo python setup.py install
 chmod +x /opt/waymore/waymore/waymore.py
 
+cd /opt/
+git clone https://github.com/blechschmidt/massdns.git
+cd /opt/massdns/
+make
+cp bin/massdns /usr/local/bin
+
+go install github.com/d3mondev/puredns/v2@latest
+
 printf '\nHappy Hacking :)\n' | pv -qL 40 | $lolcat
 sleep 5
