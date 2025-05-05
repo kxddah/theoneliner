@@ -142,5 +142,8 @@ cp bin/massdns /usr/local/bin
 
 go install github.com/d3mondev/puredns/v2@latest
 
+cd /opt/theoneliner
+wget https://wordlists-cdn.assetnote.io/data/manual/best-dns-wordlist.txt 
+
 printf '\nHappy Hacking :)\n' | pv -qL 40 | $lolcat
 sleep 5

@@ -2,6 +2,7 @@
 
 lolcat=/usr/games/lolcat
 fortune=/usr/games/fortune
+subdomain_list=/opt/theoneliner/best-dns-wordlist.txt 
 
 #gathering input on scope
 validate="^([a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]\.)+[a-zA-Z]{2,}$"
