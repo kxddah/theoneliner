@@ -172,10 +172,10 @@ if [[ $answer ]]; then
     #dnsvalidator
 	printf '\nCollecting DNS resolvers using DNSValidator\n' | pv -qL 150 | $lolcat
 	sleep 5
-	dnsvalidator --silent -tL https://public-dns.info/nameservers.txt -threads 50 | tee resolvers.txt
-	sort -R resolvers.txt | tail -n 150 > 100resolvers.txt
-	rm resolvers.txt
-	mv 100resolvers.txt ../100resolvers.txt
+#	dnsvalidator --silent -tL https://public-dns.info/nameservers.txt -threads 50 | tee resolvers.txt
+#	sort -R resolvers.txt | tail -n 150 > 100resolvers.txt
+#	rm resolvers.txt
+#	mv 100resolvers.txt ../100resolvers.txt
 	resolver_file_path="../100resolvers.txt"
 	echo -e "DNS Resolvers collected, initating enumeration and scanning" | notify -silent
 else
@@ -190,44 +190,46 @@ sleep 5
 touch amassintel.txt
 if [[ ! -z $asn && ! -z $ipranges ]]
 then
-	amass intel -active -whois -d $domain -asn $asn -cidr $ipranges -timeout 500 -rf $resolver_file_path -o amassintel.txt
+	amass intel -active -whois -d $domain -asn $asn -cidr $ipranges -timeout 5000 -rf $resolver_file_path -o amassintel.txt
 elif [[ ! -z $asn && -z $ipranges ]]
 then
-	amass intel -active -whois -d $domain -asn $asn -timeout 500 -rf $resolver_file_path -o amassintel.txt
+	amass intel -active -whois -d $domain -asn $asn -timeout 5000 -rf $resolver_file_path -o amassintel.txt
 elif [[ -z $asn && ! -z $ipranges ]]
 then
-	amass intel -active -whois -d $domain -cidr $ipranges -timeout 500 -rf $resolver_file_path -o amassintel.txt
+	amass intel -active -whois -d $domain -cidr $ipranges -timeout 5000 -rf $resolver_file_path -o amassintel.txt
 else
-	amass intel -active -whois -d $domain -timeout 500 -rf $resolver_file_path -o amassintel.txt
+	amass intel -active -whois -d $domain -timeout 5000 -rf $resolver_file_path -o amassintel.txt
 fi
 
 #filter results from amass intel file
 cat amassintel.txt | grep $domain | tee subdomains.txt
 rm amassintel.txt
 
-#amass enum
-#sleep 2
-#printf '\nRunning Amass Enum\n' | pv -qL 50 | $lolcat
-#sleep 5
+amass enum
+sleep 2
+printf '\nRunning Amass Enum\n' | pv -qL 50 | $lolcat
+sleep 5
 
 #don't use subdomains.txt if 0 results from intel
-#if [[ -s subdomains.txt ]]
-#then
-#	amass enum -active -d $domain -nf subdomains.txt -rf $resolver_file_path -timeout 100 -nocolor -o amassenum.txt
-#else
-#	amass enum -active -d $domain -rf $resolver_file_path -timeout 100 -nocolor -o amassenum.txt
-#fi
+if [[ -s subdomains.txt ]]
+then
+	amass enum -active -d $domain -nf subdomains.txt -rf $resolver_file_path -timeout 5000 -nocolor  -o amassenum.txt
+else
+	amass enum -active -d $domain -rf $resolver_file_path -timeout 5000 -nocolor -o amassenum.txt
+fi
 
 #filter results from amass enum file 
-#cat amassenum.txt | grep $domain | anew subdomains.txt
-#rm amassenum.txt
+cat amassenum.txt | cut -d " " -f 1 | grep -i $domain | tee amassenum-1.txt
+cat amassenum-1.txt | grep $domain | anew subdomains.txt
+rm amassenum.txt
+rm amassenum-1.txt
 
 #Running subfinder
 sleep 2
 printf '\nRunning Subfinder\n' | pv -qL 50 | $lolcat
 sleep 5
 touch subfinder.txt
-subfinder -dL subdomains.txt -all -o subfinder.txt -pc ~/.config/subfinder/provider-config.yaml -rL $resolver_file_path -nc
+subfinder -d $domain -all -o subfinder.txt -pc ~/.config/subfinder/provider-config.yaml -rL $resolver_file_path -nc
 
 #combining results from subfinder into final file
 cat subfinder.txt | grep $domain | anew subdomains.txt
@@ -244,7 +246,7 @@ assetfinder $domain | tee assetfinder.txt
 cat assetfinder.txt | grep $domain | anew subdomains.txt
 rm assetfinder.txt
 
-#Running puredns
+Running puredns
 sleep 2
 printf '\nRunning PureDNS\n' | pv -qL 50 | $lolcat
 sleep 5
