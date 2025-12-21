@@ -2,7 +2,25 @@
 
 lolcat=/usr/games/lolcat
 fortune=/usr/games/fortune
-subdomain_list=/opt/theoneliner/best-dns-wordlist.txt 
+#replace subdomain_list for custom subdomain list
+subdomain_list=/opt/theoneliner/best-dns-wordlist.txt
+
+get_yes_no() {
+    local prompt="$1"
+    local answer
+    while true; do
+        echo -e "$prompt"
+        read answer
+        answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
+        if [[ "$answer" == "yes" || "$answer" == "y" ]]; then
+            return 0
+        elif [[ "$answer" == "no" || "$answer" == "n" || -z "$answer" ]]; then
+            return 1
+        else
+            echo "Invalid input. Please enter yes/y or no/n (or press enter for no)"
+        fi
+    done
+}
 
 #gathering input on scope
 validate="^([a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]\.)+[a-zA-Z]{2,}$"
@@ -32,11 +50,12 @@ else
 	echo -e "\nWaymore path set successfully!"
 fi
 
-
-echo -e "\n\nDo you wish to run a portscan after subdomain enumeration? Recommended not to run a portscan if target is behind a WAF. (Press enter if no)"
-read portscan_answer
-if [[ $portscan_answer ]]; then
+echo -e "\nRunning wafw00f"
+wafw00f $domain
+echo -e "\n\nDo you wish to run a portscan after subdomain enumeration? Recommended not to run a portscan if target is behind a WAF. (yes/y or no/n, default: no)"
+if get_yes_no; then
     nuclei_input_file=portscan.txt
+    portscan_answer="yes"
     echo -e "\n\nEnter rate limit for portscanning (press enter for default 2000)"
     read portscan_rate
     if [[ ! $portscan_rate =~ ^[0-9]+$ ]]; then
@@ -45,22 +64,34 @@ if [[ $portscan_answer ]]; then
     fi
 else
     nuclei_input_file=resolvedsubs.txt
+    portscan_answer=""
 fi
 
 
-echo -e "\n\nDo you wish to use Dalfox? Enter your callback URL if yes (Press enter if no)"
-read dalfox_callbackurl
+echo -e "\n\nDo you wish to use Dalfox (Callback URL Required)? (yes/y or no/n, default: no)"
+if get_yes_no; then
+    echo -e "Enter your callback URL:"
+    read dalfox_callbackurl
+    if [[ -z "$dalfox_callbackurl" ]]; then
+        echo "Callback URL cannot be empty. Dalfox will be skipped."
+        dalfox_callbackurl=""
+    fi
+else
+    dalfox_callbackurl=""
+fi
 
 
-echo -e "\n\nDo you wish to run Nuclei? (Press enter if no)"
-read nuclei_answer
-if [[ $nuclei_answer ]]; then
+echo -e "\n\nDo you wish to run Nuclei? (yes/y or no/n, default: no)"
+if get_yes_no; then
+    nuclei_answer="yes"
     echo -e "\n\nEnter rate limit for Nuclei (press enter for default 200):"
     read nuclei_rate
     if [[ ! $nuclei_rate =~ ^[0-9]+$ ]]; then
         nuclei_rate=200
         echo -e "\n\nDefault Nuclei rate limit value set to 200"
     fi
+else
+    nuclei_answer=""
 fi
 
 #making directory for target
@@ -94,10 +125,8 @@ ipranges=""
 
 if [[ -z $asn && -z $ipranges ]]
 then
-    echo -e "No ASNs and Subnets found. Do you want to add both manually? (press enter if no)"
-    read answer
-    if [[ -n $answer ]]
-    then
+    echo -e "No ASNs and Subnets found. Do you want to add both manually? (yes/y or no/n, default: no)"
+    if get_yes_no; then
         while true; do
             echo -e "You can visit bgp.he.net for the values"
             echo -e "Enter ASNs (Comma-separated):"
@@ -123,10 +152,8 @@ then
     fi
 elif [[ -z $asn && -n $ipranges ]]
 then
-    echo -e "No ASNs found. Do you want to add ASNs manually? (press enter if no)"
-    read answer
-    if [[ -n $answer ]]
-    then
+    echo -e "No ASNs found. Do you want to add ASNs manually? (yes/y or no/n, default: no)"
+    if get_yes_no; then
         while true; do
             echo -e "You can visit bgp.he.net for the values"
             echo -e "Enter ASNs (Comma-separated):"
@@ -142,10 +169,8 @@ then
     fi
 elif [[ -n $asn && -z $ipranges ]]
 then
-    echo -e "No Subnets found. Do you want to add Subnets manually? (press enter if no)"
-    read answer
-    if [[ -n $answer ]]
-    then
+    echo -e "No Subnets found. Do you want to add Subnets manually? (yes/y or no/n, default: no)"
+    if get_yes_no; then
         while true; do
             echo -e "You can visit bgp.he.net for the values"
             echo -e "Enter Subnets (Comma-separated):"
@@ -166,20 +191,21 @@ fi
 echo -e "ASNs: "$asn"\n"
 echo -e "IP/ranges: "$ipranges"\n"
 
-echo -e "Do you want to run DNSValiator? can take a while to run. (press enter if no)"
-read answer
-if [[ $answer ]]; then
+echo -e "Do you want to run DNSValiator? Takes a while to run. (Default - Trickest Resolvers) (yes/y or no/n, default: no)"
+if get_yes_no; then
     #dnsvalidator
 	printf '\nCollecting DNS resolvers using DNSValidator\n' | pv -qL 150 | $lolcat
 	sleep 5
-#	dnsvalidator --silent -tL https://public-dns.info/nameservers.txt -threads 50 | tee resolvers.txt
-#	sort -R resolvers.txt | tail -n 150 > 100resolvers.txt
-#	rm resolvers.txt
-#	mv 100resolvers.txt ../100resolvers.txt
+ 	dnsvalidator --silent -tL https://public-dns.info/nameservers.txt -threads 50 | tee resolvers.txt
+ 	sort -R resolvers.txt | tail -n 150 > 100resolvers.txt
+ 	rm resolvers.txt
+ 	mv 100resolvers.txt ../100resolvers.txt
 	resolver_file_path="../100resolvers.txt"
 	echo -e "DNS Resolvers collected, initating enumeration and scanning" | notify -silent
 else
     echo -e "Setting Resolver file to the default"
+    wget https://raw.githubusercontent.com/trickest/resolvers/refs/heads/main/resolvers.txt
+    mv resolvers.txt ../
 	resolver_file_path="../resolvers.txt"
 fi
 
@@ -205,7 +231,7 @@ fi
 cat amassintel.txt | grep $domain | tee subdomains.txt
 rm amassintel.txt
 
-amass enum
+#amass enum
 sleep 2
 printf '\nRunning Amass Enum\n' | pv -qL 50 | $lolcat
 sleep 5
@@ -246,7 +272,100 @@ assetfinder $domain | tee assetfinder.txt
 cat assetfinder.txt | grep $domain | anew subdomains.txt
 rm assetfinder.txt
 
-Running puredns
+#integrating ip.thc.org
+sleep 2
+printf '\nQuerying ip.thc.org\n' | pv -qL 50 | $lolcat
+sleep 5
+touch thc-ipranges.txt
+touch thc-subdomain.txt
+
+# Feature 1: IP ranges (only if $ipranges is set)
+if [[ -n "$ipranges" ]]; then
+    # Validate IP format (basic check)
+    if [[ ! "$ipranges" =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}/(8|16|24)$ ]]; then
+        echo "Error: Invalid IP range format. Must be valid IP with /8, /16, or /24"
+    else
+        # Validate IP octets are <= 255
+        valid_ip=true
+        IFS='.' read -ra OCTETS <<< "${ipranges%%/*}"
+        for octet in "${OCTETS[@]}"; do
+            if [[ $octet -gt 255 ]]; then
+                valid_ip=false
+                break
+            fi
+        done
+        
+        if [[ "$valid_ip" == false ]]; then
+            echo "Error: Invalid IP address (octets must be 0-255)"
+        else
+            # Fetch data with timeout
+            http_code=$(curl -s -w "%{http_code}" -o /tmp/thc_ip_response.txt \
+                --connect-timeout 10 --max-time 30 \
+                -L "https://ip.thc.org/api/v1/download?ip_address=$(echo "$ipranges" | sed 's/\//%2F/g')" \
+                -H 'Accept: text/csv')
+            
+            response=$(cat /tmp/thc_ip_response.txt)
+            rm -f /tmp/thc_ip_response.txt
+            
+            # Check HTTP status code
+            if [[ "$http_code" != "200" ]]; then
+                echo "Error: API returned HTTP $http_code for IP range"
+            elif [[ -z "$response" ]] || [[ "$response" == *"\"status\": \"error\""* ]] || [[ $(echo "$response" | wc -l) -le 1 ]]; then
+                echo "Error: Failed to fetch IP range data or no results found"
+            else
+                # Save first column (skip header)
+                echo "$response" | tail -n +2 | cut -d',' -f1 > thc-ipranges.txt
+                echo "Success: Saved IP range data to thc-ipranges.txt"
+            fi
+        fi
+    fi
+fi
+
+# Feature 2: Subdomains (always runs)
+if [[ -z "$domain" ]]; then
+    echo "Error: domain variable is empty"
+else
+    # Sanitize domain (remove spaces, special chars except dots and hyphens)
+    domain=$(echo "$domain" | tr -cd '[:alnum:].-' | tr -s '.')
+    
+    if [[ -z "$domain" ]] || [[ ! "$domain" =~ ^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)*$ ]]; then
+        echo "Error: Invalid domain format after sanitization"
+    else
+        # Fetch data with timeout
+        http_code=$(curl -s -w "%{http_code}" -o /tmp/thc_subdomain_response.txt \
+            --connect-timeout 10 --max-time 30 \
+            -L "https://ip.thc.org/api/v1/subdomains/download?domain=${domain}" \
+            -H 'Accept: text/csv')
+        
+        response=$(cat /tmp/thc_subdomain_response.txt)
+        rm -f /tmp/thc_subdomain_response.txt
+        
+        # Check HTTP status code
+        if [[ "$http_code" != "200" ]]; then
+            echo "Error: API returned HTTP $http_code for subdomains"
+        elif [[ -z "$response" ]]; then
+            echo "Error: Failed to fetch subdomain data"
+        else
+            # Save without header
+            echo "$response" | tail -n +2 > thc-subdomain.txt
+            
+            # Check if file is empty or only whitespace
+            if [[ ! -s thc-subdomain.txt ]] || [[ $(grep -c . thc-subdomain.txt) -eq 0 ]]; then
+                echo "Warning: No subdomains found for domain $domain"
+            else
+                echo "Success: Saved subdomain data to thc-subdomain.txt"
+            fi
+        fi
+    fi
+fi
+
+cat thc-subdomain.txt | grep $domain | anew subdomains.txt
+cat thc-ipranges.txt | grep $domain | anew subdomains.txt
+# not removing the following for now to check how good ip.thc.org is
+#rm thc-ipranges.txt
+#rm thc-subdomain.txt
+
+#Running puredns
 sleep 2
 printf '\nRunning PureDNS\n' | pv -qL 50 | $lolcat
 sleep 5
@@ -254,12 +373,19 @@ touch puredns.txt
 puredns bruteforce $subdomain_list $domain --resolvers $resolver_file_path | tee puredns.txt
 cat puredns.txt | grep $domain | anew subdomains.txt
 
+# ldns-walk, needs some work, need to account for NSEC3 records
+#ldns-walk $domain | tee ldns-subdomains.txt
+#cat ldns-subdomains.txt | grep $domain | cut -d " " -f 1 | sed 's/\.$//' | sort | uniq | anew subdomains.txt
+
+### Improving DNS wordlist
+cat subdomains.txt | cut -d '.' -f 1 | anew ../best-dns-wordlist.txt
+
 #Running httpx
 sleep 2
 printf '\nFiltering valid domains using HTTPX\n' | pv -qL 50 | $lolcat
 sleep 5
 touch resolvedsubs.txt
-httpx -l subdomains.txt -fc 404 -silent -rl 10 -timeout 15 -o resolvedsubs.txt
+httpx -l subdomains.txt -silent -rl 1 -timeout 15 -o resolvedsubs.txt
 
 #filtering httpx output to remove http(s)://, requires moreutils, apt-get install moreutils
 cat resolvedsubs.txt | cut -d "/" -f 3 | sponge resolvedsubs.txt
@@ -291,7 +417,14 @@ sleep 5
 python3 $waymore_file_path -i $domain -mode U | tee tempfile.txt 
 cat tempfile.txt | anew spidering.txt
 
-Running waybackurls
+#Running hakrawler
+sleep 2
+printf '\nSpidering using Hakrawler\n' | pv -qL 50 | $lolcat
+sleep 5
+echo "https://$domain" | hakrawler -subs | tee tempfile.txt 
+cat tempfile.txt | anew spidering.txt
+
+#Running waybackurls
 sleep 2
 printf '\nCollecting URLs using waybackurls\n' | pv -qL 50 | $lolcat
 sleep 5
@@ -309,6 +442,11 @@ rm tempfile.txt
 #removing duplicate entries
 cat spidering.txt | sort -u | uniq | sponge spidering.txt
 echo -e "Spidering for "$domain" has been completed, total links found: $(cat spidering.txt | wc -l)\n" | notify -silent
+
+#JS scanning for endpoints and screts
+cat spidering.txt | grep "\.js$" | tee js.txt
+cat js.txt | jsluice secrets | jq | tee jsluice-secrets.txt
+cat js.txt | jsluice urls | jq | tee jsluice-api-endpoints.txt
 
 if [[ -n $portscan_answer ]]; then
 	#portscanning
@@ -350,6 +488,7 @@ if [[ -n $dalfox_callbackurl ]]; then
 	sleep 5
 	dalfox file resolvedsubswithprotocol.txt --mining-dict-word params.txt -F --waf-evasion -b 	$dalfox_callbackurl --output dalfox.txt
 	echo "Dalfox scan complete" | notify -silent
+    rm resolvedsubswithprotocol.txt
 else
 	echo -e "\nDalfox skipped"
 fi

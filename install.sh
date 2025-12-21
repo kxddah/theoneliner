@@ -31,12 +31,14 @@ sudo apt install -y fortune
 sudo apt install -y pv
 sudo apt-get install -y jq
 sudo apt install -y crunch
+sudo apt install -y dnsutils
+sudo apt install -y ldnsutils
 
 lolcat=/usr/games/lolcat
 fortune=/usr/games/fortune
 
-wget https://go.dev/dl/go1.22.5.linux-amd64.tar.gz
-rm -rf /usr/local/go && tar -C /usr/local -xzf go1.22.5.linux-amd64.tar.gz
+wget https://go.dev/dl/go1.25.5.linux-amd64.tar.gz
+rm -rf /usr/local/go && tar -C /usr/local -xzf go1.25.5.linux-amd64.tar.gz
 export PATH=$PATH:/usr/local/go/bin
 source ~/.profile
 GO_OUTPUT=$(go version)
@@ -46,9 +48,9 @@ else
     echo "Error installing Go"
     exit 1
 fi
-rm go1.22.5.linux-amd64.tar.gz
+rm go1.25.5.linux-amd64.tar.gz
 
-go install -v github.com/owasp-amass/amass/v4/...@master
+CGO_ENABLED=0 go install -v github.com/owasp-amass/amass/v5/cmd/amass@main
 mkdir ~/.config && mkdir ~/.config/amass
 curl -o ~/.config/amass/datasources.yaml https://raw.githubusercontent.com/owasp-amass/amass/master/examples/datasources.yaml
 curl -o ~/.config/amass/config.yaml https://raw.githubusercontent.com/owasp-amass/amass/master/examples/config.yaml
@@ -99,9 +101,9 @@ cd /opt/
 git clone --depth 1 https://github.com/sqlmapproject/sqlmap.git sqlmap-dev
 
 cd /opt/
-wget https://caido.download/releases/v0.38.0/caido-cli-v0.38.0-linux-x86_64.tar.gz
-tar -xvf caido-cli-v0.38.0-linux-x86_64.tar.gz
-rm caido-cli-v0.38.0-linux-x86_64.tar.gz
+wget https://caido.download/releases/v0.54.1/caido-cli-v0.54.1-linux-x86_64.tar.gz
+tar -xvf caido-cli-v0.54.1-linux-x86_64.tar.gz
+rm caido-cli-v0.54.1-linux-x86_64.tar.gz
 
 cd /opt/
 curl -sLO https://github.com/epi052/feroxbuster/releases/latest/download/feroxbuster_amd64.deb.zip
@@ -145,5 +147,7 @@ go install github.com/d3mondev/puredns/v2@latest
 cd /opt/theoneliner
 wget https://wordlists-cdn.assetnote.io/data/manual/best-dns-wordlist.txt 
 
-printf '\nHappy Hacking :)\n' | pv -qL 40 | $lolcat
-sleep 5
+printf '\nPlease configure the following config files for best results\n' | pv -qL 40 | $lolcat
+printf '\n~/.config/subfinder/provider-config.yaml\n' | pv -qL 40 | $lolcat
+printf '\n~/.config/amass/datasources.yaml\n' | pv -qL 40 | $lolcat
+printf '\nConfigure Notify @ ~/.config/notify/provider-config.yaml for notifications\n' | pv -qL 40 | $lolcat
