@@ -12,18 +12,22 @@ P.S. You can signup on Linode using my referral link to receive a $100, 60-day c
 A basic recon script for subdomain enumeration, spidering, port scanning and nuclei, the script consists of the following tools:
 ```markdown
 DnsValidator
+Amass
 Subfinder
 Assetfinder
+ip.thc.org
+Puredns
 Httpx
 Gau
 Waymore
-Gospider
+Waybackurls
+Jsluice
 Naabu
 Nuclei
 Dalfox
 ```
 
-It is recommended to run this on a VPS as I had written this with ease of setup on new VPS instances in mind.
+It is recommended to run this on a VPS as I had written this for ease of setup on new VPS instances in mind.
 
 
 # Installation
@@ -37,7 +41,6 @@ The `install.sh` would install everything mentioned in the tool section above al
 ```bash
 ./install.sh
 ```
-Note: I've noticed the golang config does not persist on reboot, but since I don't reboot my VPS I don't usually face any issues.
 
 # Configuration
 You would have to configure the config files for [Amass](https://github.com/owasp-amass/amass/blob/master/doc/user_guide.md#the-configuration-file) and [Subfinder](https://github.com/projectdiscovery/subfinder/blob/master/README.md#post-installation-instructions) if you'd like to have api-keys, just follow the respective guides to setup those, add them in the root folder `~/.config/amass/datasources.yaml` and `~/.config/subfinder/provider-config.yaml`
@@ -53,11 +56,13 @@ Another addition to the script is Dalfox: Don't forget to change the [your-callb
 ./recon.sh
 ```
 
-- The script would collect DNS resolvers using DnsValidator, then collect subdomains from Amass, Subfinder and Assetfinder. It'll run it through httpx to see which ones resolve.
-- Further it will use gau, waymore and katana to find different links and files by spidering and quering 3rd parties.
-- Then it'll run a port scan on the list of unresolved subdomains, this is because the the unresolved subdomain might not be running something on port 443 or 80, but might have different ports open
-- Then it'll put the portscan result into nuclei for vulnerability scanning
-- At last it'll run Dalfox, if enabled.
+- The script would collect DNS resolvers using DnsValidator, or just fetch a list from the trickest repository, then collects subdomains from Amass, Subfinder, Assetfinder, and ip.thc.org. 
+- For active subdomain enumeration, it runs puredns using Assetnote's [list](https://wordlists-cdn.assetnote.io/data/manual/best-dns-wordlist.txt)
+- It'll run it through httpx to see which ones resolve.
+- Further it will use gau, waymore and waybackurls to find different links and files by quering archives.
+- [Optional] Then it'll run a port scan on the list of unresolved subdomains, this is because the the unresolved subdomain might not be running something on port 443 or 80, but might have different ports open
+- [Optional] Then it'll put the portscan result into nuclei for vulnerability scanning
+- [Optional] At last it'll run Dalfox, if enabled.
 - During all this you could configure Notify to send notifications to discord, slack, etc. This script sends notification on completion of collection of DNS resolvers, subdomain enumeration, spidering, port scan, nuclei scan and dalfox.
 
 
